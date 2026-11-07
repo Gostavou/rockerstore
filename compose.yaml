@@ -1,0 +1,45 @@
+name: rockerstore
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" --silent
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  api:
+    build:
+      context: ./back
+      dockerfile: Dockerfile.dev
+
+    ports:
+      - "8091:80"
+
+    volumes:
+      - ./back:/var/www/html
+
+    env_file:
+      - ./back/.env
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

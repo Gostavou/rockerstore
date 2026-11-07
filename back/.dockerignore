@@ -1,0 +1,14 @@
+.git
+.gitignore
+
+.env
+.env.*
+
+vendor/
+node_modules/
+
+tests/
+.phpunit.cache/
+
+storage/logs/*
+storage/framework/cache/*
