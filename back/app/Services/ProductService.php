@@ -61,4 +61,22 @@ class ProductService
             ->where('is_active', true)
             ->findOrFail($id);
     }
+
+    public function create(array $data): Product
+    {
+        $data['is_active'] = $data['is_active'] ?? true;
+
+        $product = Product::create($data);
+
+        return $product->load('category');
+    }
+
+    public function update(int $id, array $data): Product
+    {
+        $product = Product::findOrFail($id);
+
+        $product->update($data);
+
+        return $product->load('category');
+    }
 }
