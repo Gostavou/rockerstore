@@ -4,13 +4,27 @@ use App\Http\Controllers\Api\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Cadastro público dos clientes
+// Rotas públicas.
 Route::post('/auth/register', [
     AuthController::class,
     'register',
 ]);
 
-// Rota protegida por autenticação Sanctum
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/auth/login', [
+    AuthController::class,
+    'login',
+]);
+
+// Rotas protegidas por autenticação.
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    Route::post('/auth/logout', [
+        AuthController::class,
+        'logout',
+    ]);
+
+});
