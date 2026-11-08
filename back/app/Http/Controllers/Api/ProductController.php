@@ -63,4 +63,13 @@ class ProductController extends Controller
             'data' => new ProductResource($updatedProduct),
         ], 200);
     }
+
+    public function destroy(int $product): JsonResponse
+    {
+        $this->productService->delete($product);
+
+        return response()->json([
+            'message' => 'Produto excluído com sucesso.',
+        ], 200);
+    }
 }

@@ -75,7 +75,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/products/{product}', [
                 ProductController::class,
                 'update',
-            ]);
+            ])->whereNumber('product');
+
+            Route::delete('/products/{product}', [
+                ProductController::class,
+                'destroy',
+            ])->whereNumber('product');
 
         });
 

@@ -79,4 +79,11 @@ class ProductService
 
         return $product->load('category');
     }
+
+    public function delete(int $id): void
+    {
+        $product = Product::findOrFail($id);
+
+        $product->delete();
+    }
 }
