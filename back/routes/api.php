@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,12 @@ Route::post('/auth/login', [
     'login',
 ]);
 
+Route::get('/categories', [
+    CategoryController::class,
+    'index',
+]);
+
+
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/user', function (Request $request) {
@@ -25,14 +32,31 @@ Route::middleware('auth:sanctum')->group(function () {
         'logout',
     ]);
 
-    Route::middleware('admin')->prefix('admin')->group(function () {
+    Route::middleware('admin')
+        ->prefix('admin')
+        ->group(function () {
 
-        Route::get('/check', function () {
-            return response()->json([
-                'message' => 'Acesso administrativo autorizado.',
+            Route::get('/check', function () {
+                return response()->json([
+                    'message' => 'Acesso administrativo autorizado.',
+                ]);
+            });
+
+            Route::post('/categories', [
+                CategoryController::class,
+                'store',
             ]);
-        });
 
-    });
+            Route::put('/categories/{category}', [
+                CategoryController::class,
+                'update',
+            ]);
+
+            Route::delete('/categories/{category}', [
+                CategoryController::class,
+                'destroy',
+            ]);
+
+        });
 
 });
