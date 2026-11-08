@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ProductController;
 
 Route::post('/auth/register', [
     AuthController::class,
@@ -20,6 +21,15 @@ Route::get('/categories', [
     'index',
 ]);
 
+Route::get('/products', [
+    ProductController::class,
+    'index',
+]);
+
+Route::get('/products/{product}', [
+    ProductController::class,
+    'show',
+]);
 
 Route::middleware('auth:sanctum')->group(function () {
 
