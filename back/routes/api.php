@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\CartController;
 
 // ROTAS PÚBLICAS
 
@@ -69,6 +70,31 @@ Route::middleware('auth:sanctum')->group(function () {
         AddressController::class,
         'destroy',
     ])->whereNumber('address');
+
+
+
+    // CARRINHO DE COMPRAS
+
+    Route::get('/cart', [
+        CartController::class,
+        'index',
+    ]);
+
+    Route::post('/cart/items', [
+        CartController::class,
+        'store',
+    ]);
+
+    Route::put('/cart/items/{item}', [
+        CartController::class,
+        'update',
+    ])->whereNumber('item');
+
+    Route::delete('/cart/items/{item}', [
+        CartController::class,
+        'destroy',
+    ])->whereNumber('item');
+
 
 
     // ROTAS ADMINISTRATIVAS
