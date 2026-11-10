@@ -23,6 +23,8 @@ class AuthController extends Controller
             $request->validated()
         );
 
+        $request->session()->regenerate();
+
         return response()->json([
             'message' => 'Cliente cadastrado com sucesso.',
             'data' => [
@@ -37,11 +39,11 @@ class AuthController extends Controller
     public function login(
         LoginRequest $request
     ): JsonResponse {
-        $result = $this->authService->login(
+        $user = $this->authService->login(
             $request->validated()
         );
 
-        $user = $result['user'];
+        $request->session()->regenerate();
 
         return response()->json([
             'message' => 'Login realizado com sucesso.',
@@ -52,22 +54,19 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'role' => $user->role,
                 ],
-                'token_type' => 'Bearer',
-                'access_token' => $result['token'],
             ],
         ], 200);
     }
 
-
     public function logout(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $this->authService->logout();
 
-        $this->authService->logout($user);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'Logout realizado com sucesso.',
         ], 200);
     }
-
 }
