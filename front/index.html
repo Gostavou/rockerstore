@@ -20,6 +20,7 @@
             defer></script>
 
     <script src="/js/app.js" defer></script>
+    <script src="/js/auth.js" defer></script>
 </head>
 
 <body>
@@ -36,14 +37,18 @@
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#navbarMenu"
+                    aria-controls="navbarMenu"
+                    aria-expanded="false"
                     aria-label="Abrir menu">
+
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse"
                  id="navbarMenu">
 
-                <div class="navbar-nav ms-auto gap-lg-3">
+                <div class="navbar-nav ms-auto gap-lg-3 align-items-lg-center">
+
                     <a class="nav-link active" href="/">
                         Início
                     </a>
@@ -56,10 +61,37 @@
                         Swagger
                     </a>
 
+                    <!-- CARRINHO -->
                     <span class="nav-link">
                         Carrinho:
                         <strong id="cartCount">0</strong>
                     </span>
+
+                    <!-- USUÁRIO NÃO AUTENTICADO -->
+                    <a id="loginLink"
+                       class="nav-link"
+                       href="/login.html">
+                        Entrar
+                    </a>
+
+                    <a id="registerLink"
+                       class="nav-link"
+                       href="/register.html">
+                        Criar conta
+                    </a>
+
+                    <!-- USUÁRIO AUTENTICADO -->
+                    <span id="userWelcome"
+                          class="nav-link d-none">
+                    </span>
+
+                    <!-- LOGOUT -->
+                    <button id="logoutButton"
+                            type="button"
+                            class="btn btn-outline-light btn-sm d-none">
+                        Sair
+                    </button>
+
                 </div>
             </div>
 
@@ -99,10 +131,12 @@
                     </div>
 
                     <div class="col-lg-5 text-center">
+
                         <div class="hero-symbol"
                              aria-hidden="true">
                             🎸
                         </div>
+
                     </div>
 
                 </div>
@@ -115,6 +149,7 @@
                  id="catalogo">
 
             <div class="mb-4">
+
                 <p class="hero-label mb-2">
                     ROCKERSTORE
                 </p>
@@ -126,6 +161,7 @@
                 <p class="text-secondary">
                     Escolha seu próximo instrumento.
                 </p>
+
             </div>
 
             <!-- FILTROS -->
@@ -179,11 +215,13 @@
             <div id="message"
                  role="status"
                  aria-live="polite"
-                 class="mb-3"></div>
+                 class="mb-3">
+            </div>
 
             <!-- PRODUTOS -->
             <div id="productList"
-                 class="row g-4"></div>
+                 class="row g-4">
+            </div>
 
             <!-- PAGINAÇÃO -->
             <div class="d-flex justify-content-center

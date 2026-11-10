@@ -173,3 +173,53 @@ html {
         font-size: 7rem;
     }
 }
+
+
+/* AUTENTICAÇÃO */
+
+.auth-section {
+    min-height: calc(100vh - 85px);
+
+    display: flex;
+    align-items: center;
+
+    padding: 60px 0;
+
+    background: radial-gradient(
+        circle at top,
+        #322026,
+        #101114 65%
+    );
+}
+
+.auth-card {
+    max-width: 470px;
+
+    margin: 0 auto;
+    padding: 40px;
+
+    background-color: var(--rock-gray);
+
+    border: 1px solid var(--rock-border);
+    border-radius: 14px;
+
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+}
+
+.auth-link {
+    color: #ff626b;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-link:hover {
+    color: #ff858b;
+    text-decoration: underline;
+}
+
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 25px;
+    }
+}
+
