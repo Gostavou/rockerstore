@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Servir o Swagger UI estaticamente em /api/docs sem redirecionamento.
+    RewriteRule ^api/docs/?$ api/docs/index.html [END]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

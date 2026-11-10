@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RockerStore | Swagger UI</title>
+  <link rel="stylesheet" href="/api/docs/assets/swagger-ui.css">
+  <style>
+    body { margin: 0; background: #f6f7f9; }
+    .rocker-note { background: #16191f; color: #fff; font: 14px/1.6 system-ui, sans-serif; padding: 14px 24px; }
+    .rocker-note strong { color: #ff6b6b; }
+    .rocker-note code { background: #343842; padding: 2px 5px; border-radius: 4px; }
+    .rocker-note a { color: #ffc4c4; }
+  </style>
+</head>
+<body>
+  <div class="rocker-note">
+    <strong>RockerStore API</strong> · Documentação de desenvolvimento.
+    A autenticação utiliza <b>cookies de sessão do Laravel Sanctum</b>, não token Bearer.
+    No <b>Try it out</b>, o navegador envia os cookies deste host.
+    Antes de POST/PUT/PATCH/DELETE, a interface solicita
+    <code>/sanctum/csrf-cookie</code> e envia <code>X-XSRF-TOKEN</code>.
+    Primeiro execute <code>POST /auth/login</code> para acessar operações protegidas.
+    <a href="/api/docs/openapi.yaml">Abrir OpenAPI YAML</a>.
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="/api/docs/assets/swagger-ui-bundle.js"></script>
+  <script src="/api/docs/assets/swagger-ui-standalone-preset.js"></script>
+  <script src="/api/docs/assets/swagger-initializer.js"></script>
+</body>
+</html>
