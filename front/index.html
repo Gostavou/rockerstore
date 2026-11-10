@@ -4,7 +4,6 @@
 
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
@@ -25,7 +24,6 @@
 
 <body>
 
-    <!-- NAVEGAÇÃO -->
     <header class="site-header sticky-top">
         <nav class="navbar navbar-expand-lg container py-3">
 
@@ -47,9 +45,12 @@
             <div class="collapse navbar-collapse"
                  id="navbarMenu">
 
-                <div class="navbar-nav ms-auto gap-lg-3 align-items-lg-center">
+                <div class="navbar-nav ms-auto gap-lg-3
+                            align-items-lg-center">
 
-                    <a class="nav-link active" href="/">
+                    <a class="nav-link active"
+                       aria-current="page"
+                       href="/">
                         Início
                     </a>
 
@@ -61,15 +62,15 @@
                         Swagger
                     </a>
 
-                    <!-- CARRINHO -->
-                    
                     <a class="nav-link" href="/cart.html">
                         Carrinho:
                         <strong id="cartCount">0</strong>
                     </a>
 
+                    <a class="nav-link" href="/orders.html">
+                        Meus pedidos
+                    </a>
 
-                    <!-- USUÁRIO NÃO AUTENTICADO -->
                     <a id="loginLink"
                        class="nav-link"
                        href="/login.html">
@@ -82,12 +83,10 @@
                         Criar conta
                     </a>
 
-                    <!-- USUÁRIO AUTENTICADO -->
                     <span id="userWelcome"
                           class="nav-link d-none">
                     </span>
 
-                    <!-- LOGOUT -->
                     <button id="logoutButton"
                             type="button"
                             class="btn btn-outline-light btn-sm d-none">
@@ -100,7 +99,6 @@
         </nav>
     </header>
 
-    <!-- DESTAQUE -->
     <main>
 
         <section class="hero">
@@ -146,7 +144,6 @@
             </div>
         </section>
 
-        <!-- CATÁLOGO -->
         <section class="container py-5"
                  id="catalogo">
 
@@ -166,7 +163,6 @@
 
             </div>
 
-            <!-- FILTROS -->
             <form id="filtroForm" class="row g-3 mb-4">
 
                 <div class="col-md-6">
@@ -213,19 +209,16 @@
 
             </form>
 
-            <!-- MENSAGENS -->
             <div id="message"
                  role="status"
                  aria-live="polite"
                  class="mb-3">
             </div>
 
-            <!-- PRODUTOS -->
             <div id="productList"
                  class="row g-4">
             </div>
 
-            <!-- PAGINAÇÃO -->
             <div class="d-flex justify-content-center
                         align-items-center gap-3 mt-5">
 
@@ -253,7 +246,6 @@
 
     </main>
 
-    <!-- RODAPÉ -->
     <footer class="footer py-4">
 
         <div class="container text-center">

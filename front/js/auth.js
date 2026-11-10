@@ -133,7 +133,12 @@
             window.location.search
         ).get("next");
 
-        const destination = next === "/checkout.html"
+        const allowedDestinations = [
+            "/checkout.html",
+            "/orders.html"
+        ];
+
+        const destination = allowedDestinations.includes(next)
             ? next
             : "/";
 

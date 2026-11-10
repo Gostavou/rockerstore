@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Meus pedidos | RockerStore</title>
+
+    <link rel="stylesheet"
+          href="/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/vendor/bootstrap/bootstrap.bundle.min.js"
+            defer></script>
+    <script src="/js/auth.js" defer></script>
+    <script src="/js/orders.js" defer></script>
+</head>
+
+<body>
+
+    <header class="site-header sticky-top">
+        <nav class="navbar navbar-expand-lg container py-3">
+
+            <a class="navbar-brand logo" href="/">
+                ROCKER<span>STORE</span>
+            </a>
+
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarMenu"
+                    aria-label="Abrir menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse"
+                 id="navbarMenu">
+
+                <div class="navbar-nav ms-auto gap-lg-3
+                            align-items-lg-center">
+
+                    <a class="nav-link" href="/">
+                        Início
+                    </a>
+
+                    <a class="nav-link" href="/cart.html">
+                        Carrinho
+                    </a>
+
+                    <a class="nav-link active"
+                       href="/orders.html">
+                        Meus pedidos
+                    </a>
+
+                    <a id="loginLink"
+                       class="nav-link"
+                       href="/login.html">
+                        Entrar
+                    </a>
+
+                    <a id="registerLink"
+                       class="nav-link"
+                       href="/register.html">
+                        Criar conta
+                    </a>
+
+                    <span id="userWelcome"
+                          class="nav-link d-none"></span>
+
+                    <button id="logoutButton"
+                            type="button"
+                            class="btn btn-outline-light btn-sm d-none">
+                        Sair
+                    </button>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container py-5">
+
+        <p class="hero-label">MINHAS COMPRAS</p>
+
+        <h1 class="fw-bold mb-2">Meus pedidos</h1>
+
+        <p class="text-secondary mb-4">
+            Acompanhe suas compras e consulte seus detalhes.
+        </p>
+
+        <div id="ordersMessage"
+             class="d-none"
+             role="status"
+             aria-live="polite"></div>
+
+        <section id="loginNotice"
+                 class="cart-empty d-none">
+
+            <h2 class="h4">Faça login para continuar</h2>
+
+            <p>Você precisa estar autenticado para ver seus pedidos.</p>
+
+            <a href="/login.html?next=%2Forders.html"
+               class="btn btn-danger">
+                Entrar
+            </a>
+        </section>
+
+        <section id="ordersPanel" class="d-none">
+
+            <div id="ordersList"></div>
+
+            <nav class="d-flex justify-content-center
+                        align-items-center gap-3 mt-4"
+                 aria-label="Paginação dos pedidos">
+
+                <button id="prevPage"
+                        type="button"
+                        class="btn btn-outline-light"
+                        disabled>
+                    Anterior
+                </button>
+
+                <span id="pageInfo">Página 1</span>
+
+                <button id="nextPage"
+                        type="button"
+                        class="btn btn-outline-light"
+                        disabled>
+                    Próxima
+                </button>
+
+            </nav>
+
+        </section>
+
+        <section id="detailsPanel"
+                 class="checkout-card d-none mt-5">
+
+            <div class="d-flex justify-content-between
+                        align-items-center flex-wrap gap-3 mb-4">
+
+                <h2 id="detailsTitle"
+                    class="h3 fw-bold mb-0"></h2>
+
+                <span id="detailsStatus"
+                      class="badge text-bg-secondary"></span>
+
+            </div>
+
+            <p id="detailsDate"
+               class="text-secondary"></p>
+
+            <h3 class="h5 mt-4">Produtos</h3>
+
+            <ul id="detailsItems"
+                class="list-unstyled"></ul>
+
+            <h3 class="h5 mt-4">Endereço de entrega</h3>
+
+            <p id="detailsAddress"
+               class="text-secondary"></p>
+
+            <hr>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Subtotal</span>
+                <strong id="detailsSubtotal"></strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Frete</span>
+                <strong id="detailsShipping"></strong>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-between mb-4">
+                <strong>Total</strong>
+                <strong id="detailsTotal"
+                        class="cart-total"></strong>
+            </div>
+
+            <div class="d-flex gap-3 flex-wrap">
+
+                <button id="payOrderButton"
+                        type="button"
+                        class="btn btn-danger d-none">
+                    Simular pagamento
+                </button>
+
+                <button id="cancelOrderButton"
+                        type="button"
+                        class="btn btn-outline-danger d-none">
+                    Cancelar pedido
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="footer py-4 mt-5">
+        <div class="container text-center">
+            <strong>ROCKERSTORE</strong>
+            <p class="text-secondary small mb-0">
+                E-commerce de instrumentos musicais.
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

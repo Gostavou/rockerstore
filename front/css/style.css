@@ -335,3 +335,29 @@ html {
         padding: 20px;
     }
 }
+
+
+.order-card {
+    background-color: var(--rock-gray);
+    border: 1px solid var(--rock-border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.order-card:hover {
+    border-color: var(--rock-red);
+}
+
+.order-detail-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rock-border);
+}
+
+#detailsPanel {
+    scroll-margin-top: 110px;
+}
+
+#detailsStatus {
+    font-size: 0.85rem;
+    padding: 9px 12px;
+}
