@@ -17,7 +17,7 @@ class UpdateCartItemRequest extends FormRequest
             'quantity' => [
                 'required',
                 'integer',
-                'min:1',
+                'min:0',
             ],
         ];
     }

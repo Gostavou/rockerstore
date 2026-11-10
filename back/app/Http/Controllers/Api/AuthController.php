@@ -8,13 +8,19 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\CartService;
+use App\Services\GuestCartSessionService;
 
 class AuthController extends Controller
 {
     public function __construct(
-        private AuthService $authService
+        private AuthService $authService,
+        private CartService $cartService,
+        private GuestCartSessionService $guestCartSession
     ) {
     }
+
+
 
     public function register(
         RegisterRequest $request
@@ -25,6 +31,11 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        $warnings = $this->mergeCart(
+            $request,
+            $user->id
+        );
+
         return response()->json([
             'message' => 'Cliente cadastrado com sucesso.',
             'data' => [
@@ -32,9 +43,14 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'cart_merge' => [
+                    'warnings' => $warnings,
+                ],
             ],
         ], 201);
     }
+
+
 
     public function login(
         LoginRequest $request
@@ -45,6 +61,11 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        $warnings = $this->mergeCart(
+            $request,
+            $user->id
+        );
+
         return response()->json([
             'message' => 'Login realizado com sucesso.',
             'data' => [
@@ -54,9 +75,13 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'role' => $user->role,
                 ],
+                'cart_merge' => [
+                    'warnings' => $warnings,
+                ],
             ],
         ], 200);
     }
+
 
     public function logout(Request $request): JsonResponse
     {
@@ -69,4 +94,25 @@ class AuthController extends Controller
             'message' => 'Logout realizado com sucesso.',
         ], 200);
     }
+
+
+    private function mergeCart(
+        Request $request,
+        int $userId
+    ): array {
+        $guestToken = $this->guestCartSession
+            ->existingToken($request);
+
+        $warnings = $this->cartService->mergeGuestCart(
+            $userId,
+            $guestToken
+        );
+
+        if ($guestToken !== null) {
+            $this->guestCartSession->forget();
+        }
+
+        return $warnings;
+    }
+
 }
