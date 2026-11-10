@@ -2,16 +2,12 @@
 
 (() => {
 
-    // ELEMENTOS
-
     const loginForm = document.getElementById("loginForm");
 
     const registerForm = document.getElementById("registerForm");
 
     const authMessage = document.getElementById("authMessage");
 
-
-    // MOSTRAR MENSAGENS
 
     function showAuthMessage(text, type = "danger") {
         if (!authMessage) {
@@ -22,8 +18,6 @@
         authMessage.textContent = text;
     }
 
-
-    // LER TOKEN XSRF DO COOKIE
 
     function getXsrfToken() {
         const cookie = document.cookie
@@ -40,11 +34,7 @@
     }
 
 
-    // ENVIAR REQUISIÇÕES JSON
-
     async function sendRequest(url, method, data = null) {
-
-        // Requisições de escrita precisam de CSRF.
 
         const csrfResponse = await fetch(
             "/sanctum/csrf-cookie",
@@ -93,7 +83,6 @@
         try {
             result = await response.json();
         } catch {
-            // Algumas respostas podem não ter JSON.
         }
 
         if (!response.ok) {
@@ -111,8 +100,6 @@
         return result;
     }
 
-
-    // PROCESSAR LOGIN OU CADASTRO
 
     async function handleAuth(event, type) {
 
@@ -157,7 +144,6 @@
                 data
             );
 
-            // O backend já realiza a fusão do carrinho.
             const warnings =
                 result.data?.cart_merge?.warnings || [];
 
@@ -172,8 +158,7 @@
                     "warning"
                 );
 
-                // Não redirecionar automaticamente:
-                // o usuário precisa visualizar os avisos.
+    
                 const link = document.createElement("a");
 
                 link.href = "/";
@@ -206,8 +191,6 @@
     }
 
 
-    // CONSULTAR SESSÃO ATUAL
-
     async function loadSession() {
 
         const loginLink = document.getElementById("loginLink");
@@ -238,7 +221,6 @@
                 );
             }
 
-            // /api/user retorna o Model diretamente.
             const user = await response.json();
 
             loginLink.classList.add("d-none");
@@ -253,9 +235,6 @@
             console.error("Erro de sessão:", error);
         }
     }
-
-
-    // ENCERRAR SESSÃO
 
     async function logout() {
         const logoutButton = document.getElementById("logoutButton");
@@ -276,8 +255,6 @@
         }
     }
 
-
-    // EVENTOS
 
     if (loginForm) {
         loginForm.addEventListener("submit", event => {
