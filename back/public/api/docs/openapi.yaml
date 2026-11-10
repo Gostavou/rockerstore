@@ -1,0 +1,2226 @@
+openapi: "3.0.3"
+info:
+  title: "RockerStore API"
+  version: "1.0.0"
+  description: "Documentação baseada no código Laravel do RockerStore (branch main, commit e073f42). API com sessão Laravel/Sanctum, cookies e proteção CSRF; não emite Bearer no login. Antes de operações de escrita, a UI inicializa /sanctum/csrf-cookie e envia X-XSRF-TOKEN. Em todas as requisições Try it out são enviados cookies do mesmo host. Valores em centavos. Algumas rotas retornam Resources dentro de `data` e `/user` retorna o Model diretamente. Apenas rotas realmente registradas foram documentadas."
+servers:
+  -
+    url: "/api"
+    description: "Mesmo host Apache da documentação. Prefixo /api incluído apenas uma vez."
+tags:
+  -
+    name: "Autenticação"
+    description: "Registro, login e sessão web por cookie; logout e usuário atual."
+  -
+    name: "Catálogo"
+    description: "Catálogo público de produtos ativos."
+  -
+    name: "Categorias"
+    description: "Categorias públicas e gestão administrativa."
+  -
+    name: "Carrinho"
+    description: "Carrinho anônimo persistente e carrinho vinculado à conta."
+  -
+    name: "Endereços"
+    description: "Endereços do usuário autenticado."
+  -
+    name: "Pedidos"
+    description: "Checkout, pagamento simulado, cancelamento e histórico."
+  -
+    name: "Administração"
+    description: "Endpoints protegidos por middleware admin."
+  -
+    name: "Sessão/CSRF"
+    description: "Endpoint auxiliar do Sanctum para inicialização do cookie CSRF."
+paths:
+  "/sanctum/csrf-cookie":
+    get:
+      tags:
+        - "Sessão/CSRF"
+      summary: "Inicializar cookies e proteção CSRF"
+      description: "Endpoint real do Sanctum, fora de `/api`. Antes das operações POST/PUT/PATCH/DELETE, a interface obtém XSRF-TOKEN por aqui. Não usa Bearer."
+      responses:
+        "204":
+          description: "Cookies XSRF-TOKEN e sessão enviados; sem corpo."
+      servers:
+        -
+          url: "/"
+  "/auth/register":
+    post:
+      tags:
+        - "Autenticação"
+      summary: "Cadastrar cliente e fundir carrinho"
+      description: "Público. Cria usuário com role `cliente`, efetua login por sessão e mescla carrinho anônimo. O campo role é proibido. CSRF obrigatório em requisições stateful."
+      responses:
+        "201":
+          description: "Usuário registrado e autenticado por cookie."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/RegisterResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/RegisterRequest"
+            examples:
+              valid:
+                summary: "Cadastro válido"
+                value:
+                  name: "Cliente Novo"
+                  email: "novo@example.com"
+                  password: "senha-segura-123"
+                  password_confirmation: "senha-segura-123"
+              invalid:
+                summary: "Inválido: confirmação diferente"
+                value:
+                  name: "Cliente Novo"
+                  email: "novo@example.com"
+                  password: "senha-segura-123"
+                  password_confirmation: "outra-senha"
+  "/auth/login":
+    post:
+      tags:
+        - "Autenticação"
+      summary: "Entrar na conta e fundir carrinho"
+      description: "Público. Autentica via sessão web do Laravel; renova a sessão e mescla carrinho do visitante, avisando ajustes de estoque. Não retorna token Bearer."
+      responses:
+        "200":
+          description: "Login concluído; cookie de sessão ativo."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/LoginResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/LoginRequest"
+            examples:
+              valid:
+                summary: "Credenciais"
+                value:
+                  email: "cliente@example.com"
+                  password: "senha-segura"
+              invalid:
+                summary: "E-mail inválido"
+                value:
+                  email: "nao-e-email"
+                  password: "x"
+  "/auth/logout":
+    post:
+      tags:
+        - "Autenticação"
+      summary: "Encerrar sessão"
+      description: "Autenticado. Invalida a sessão web, sem token Bearer."
+      responses:
+        "200":
+          description: "Sessão encerrada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/SimpleMessage"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/user":
+    get:
+      tags:
+        - "Autenticação"
+      summary: "Usuário atual"
+      description: "Autenticado. Retorna diretamente o Model User serializado, sem envelope `data` e sem senha."
+      responses:
+        "200":
+          description: "Usuário corrente."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/User"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/categories":
+    get:
+      tags:
+        - "Categorias"
+      summary: "Listar categorias"
+      description: "Público. Lista em ordem alfabética."
+      responses:
+        "200":
+          description: "Coleção de categorias."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CategoryList"
+  "/admin/categories":
+    post:
+      tags:
+        - "Administração"
+      summary: "Criar categoria"
+      description: "Apenas admin. Nome obrigatório, único, máximo 120 caracteres; slug gerado automaticamente."
+      responses:
+        "201":
+          description: "Categoria criada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CategoryWriteResponse"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CategoryWrite"
+            examples:
+              valid:
+                summary: "Válido"
+                value:
+                  name: "Teclados"
+              invalid:
+                summary: "Inválido: sem nome"
+                value: {}
+  "/admin/categories/{category}":
+    put:
+      tags:
+        - "Administração"
+      summary: "Atualizar categoria"
+      description: "Apenas admin. Exige `name` obrigatório. Slug é recalculado."
+      responses:
+        "200":
+          description: "Categoria atualizada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CategoryWriteResponse"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      parameters:
+        -
+          name: "category"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CategoryWrite"
+    delete:
+      tags:
+        - "Administração"
+      summary: "Excluir categoria"
+      description: "Apenas admin. Se existir produto vinculado à categoria, retorna 409."
+      responses:
+        "200":
+          description: "Categoria excluída."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/SimpleMessage"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Conflito de regra de negócio ou transição inválida."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "category"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/products":
+    get:
+      tags:
+        - "Catálogo"
+      summary: "Listar catálogo público"
+      description: "Produtos ativos e não excluídos, ordenados por nome com 12 por página. A versão atual NÃO implementa parâmetro de ordenação; filtros são os definidos por ListProductsRequest."
+      responses:
+        "200":
+          description: "Lista paginada de produtos."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ProductPage"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      parameters:
+        -
+          name: "search"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+          description: "Pesquisa pelo nome (até 100 caracteres)."
+        -
+          name: "category_id"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+          description: "Categoria existente."
+        -
+          name: "min_price_cents"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+          description: "Preço mínimo em centavos."
+        -
+          name: "max_price_cents"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+          description: "Preço máximo em centavos; deve ser >= mínimo, se enviado."
+        -
+          name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+          description: "Página 1 ou maior."
+  "/products/{product}":
+    get:
+      tags:
+        - "Catálogo"
+      summary: "Detalhe público do produto"
+      description: "Somente produto ativo. Produtos inativos ou excluídos retornam 404."
+      responses:
+        "200":
+          description: "Produto encontrado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ProductEnvelope"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "product"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/admin/products":
+    post:
+      tags:
+        - "Administração"
+      summary: "Cadastrar produto"
+      description: "Apenas admin. Valores monetários em centavos; `image_path` é string, não upload multipart."
+      responses:
+        "201":
+          description: "Produto criado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ProductWriteResponse"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/ProductWrite"
+            examples:
+              valid:
+                summary: "Válido"
+                value:
+                  category_id: 1
+                  name: "Guitarra Nova"
+                  description: "Modelo clássico"
+                  price_cents: 189990
+                  stock_quantity: 3
+                  is_active: true
+              invalid:
+                summary: "Inválido: preço negativo"
+                value:
+                  category_id: 1
+                  name: "Guitarra Nova"
+                  price_cents: -10
+                  stock_quantity: 3
+  "/admin/products/{product}":
+    put:
+      tags:
+        - "Administração"
+      summary: "Atualizar produto"
+      description: "Apenas admin. Campos opcionais; campos presentes são validados."
+      responses:
+        "200":
+          description: "Produto atualizado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ProductWriteResponse"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      parameters:
+        -
+          name: "product"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/ProductUpdate"
+            examples:
+              valid:
+                summary: "Alterar estoque"
+                value:
+                  stock_quantity: 10
+              invalid:
+                summary: "Inválido: estoque negativo"
+                value:
+                  stock_quantity: -1
+    delete:
+      tags:
+        - "Administração"
+      summary: "Excluir produto logicamente"
+      description: "Apenas admin. Soft delete; preserva histórico dos pedidos."
+      responses:
+        "200":
+          description: "Produto excluído."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/SimpleMessage"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "product"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/cart":
+    get:
+      tags:
+        - "Carrinho"
+      summary: "Ver carrinho atual"
+      description: "Público, com ou sem login. Carrinho anônimo identificado pelo cookie persistente `rockerstore_guest_cart`; valores são recalculados usando o preço atual."
+      responses:
+        "200":
+          description: "Carrinho do visitante ou usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CartEnvelope"
+  "/cart/items":
+    post:
+      tags:
+        - "Carrinho"
+      summary: "Adicionar ao carrinho"
+      description: "Público, sessão/cookies stateful. Itens repetidos somam quantidades. Produto inativo/fora do catálogo retorna 404; falta de estoque retorna 422."
+      responses:
+        "200":
+          description: "Carrinho atualizado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CartEnvelope"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CartAdd"
+            examples:
+              valid:
+                summary: "Adicionar duas unidades"
+                value:
+                  product_id: 1
+                  quantity: 2
+              invalid:
+                summary: "Inválido: quantidade zero"
+                value:
+                  product_id: 1
+                  quantity: 0
+  "/cart/items/{item}":
+    put:
+      tags:
+        - "Carrinho"
+      summary: "Definir quantidade do item"
+      description: "Público. Quantidade zero remove o item. Só permite modificar itens do carrinho identificado por cookie/sessão."
+      responses:
+        "200":
+          description: "Carrinho atualizado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CartEnvelope"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      parameters:
+        -
+          name: "item"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CartUpdate"
+            examples:
+              valid:
+                summary: "Remover com quantidade zero"
+                value:
+                  quantity: 0
+              invalid:
+                summary: "Inválido: quantidade negativa"
+                value:
+                  quantity: -1
+    delete:
+      tags:
+        - "Carrinho"
+      summary: "Remover item"
+      description: "Público. Remove somente um item pertencente ao carrinho atual."
+      responses:
+        "200":
+          description: "Carrinho atualizado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CartEnvelope"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "item"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/addresses":
+    get:
+      tags:
+        - "Endereços"
+      summary: "Listar meus endereços"
+      description: "Autenticado. Lista apenas endereços do usuário, mais recentes primeiro."
+      responses:
+        "200":
+          description: "Coleção de endereços."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/AddressList"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - "Endereços"
+      summary: "Cadastrar endereço"
+      description: "Autenticado. Salva endereço vinculado ao usuário da sessão."
+      responses:
+        "201":
+          description: "Endereço cadastrado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/AddressWriteResponse"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/AddressWrite"
+            examples:
+              valid:
+                summary: "Válido"
+                value:
+                  recipient_name: "Cliente"
+                  zip_code: "85010-000"
+                  street: "Rua Exemplo"
+                  number: "100"
+                  district: "Centro"
+                  city: "Guarapuava"
+                  state: "PR"
+              invalid:
+                summary: "CEP inválido"
+                value:
+                  recipient_name: "Cliente"
+                  zip_code: "abc"
+                  street: "Rua Exemplo"
+                  number: "100"
+                  district: "Centro"
+                  city: "Guarapuava"
+                  state: "PR"
+  "/addresses/{address}":
+    put:
+      tags:
+        - "Endereços"
+      summary: "Atualizar meu endereço"
+      description: "Autenticado. Somente endereço próprio; requisição parcial aceita via PUT."
+      responses:
+        "200":
+          description: "Endereço atualizado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/AddressWriteResponse"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      parameters:
+        -
+          name: "address"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/AddressUpdate"
+            examples:
+              valid:
+                summary: "Atualizar complemento"
+                value:
+                  complement: "Apartamento 12"
+    delete:
+      tags:
+        - "Endereços"
+      summary: "Excluir meu endereço"
+      description: "Autenticado. Retorna 409 se houver pedido vinculado."
+      responses:
+        "200":
+          description: "Endereço excluído."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/SimpleMessage"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Conflito de regra de negócio ou transição inválida."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "address"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/orders":
+    get:
+      tags:
+        - "Pedidos"
+      summary: "Meus pedidos"
+      description: "Autenticado. Histórico paginado (10 por página), somente pedidos do usuário."
+      responses:
+        "200":
+          description: "Pedidos do cliente."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderPage"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+          description: "Página da listagem."
+    post:
+      tags:
+        - "Pedidos"
+      summary: "Finalizar checkout"
+      description: "Autenticado. Seleciona endereço próprio, valida produtos/estoque, cria pedido em transação, desconta estoque, congela nome e preço e esvazia carrinho. Frete fixo de 1500 centavos."
+      responses:
+        "201":
+          description: "Pedido criado aguardando pagamento."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/OrderCreate"
+            examples:
+              valid:
+                summary: "Finalizar"
+                value:
+                  address_id: 1
+              invalid:
+                summary: "Inválido: endereço ausente"
+                value: {}
+  "/orders/{order}":
+    get:
+      tags:
+        - "Pedidos"
+      summary: "Detalhe do meu pedido"
+      description: "Autenticado. Só o proprietário pode visualizar por esta rota; outros usuários recebem 403."
+      responses:
+        "200":
+          description: "Pedido com itens e endereço congelado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "order"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/orders/{order}/pay":
+    post:
+      tags:
+        - "Pedidos"
+      summary: "Confirmar pagamento simulado"
+      description: "Autenticado. Apenas dono. De `aguardando_pagamento` para `pago`, registra `paid_at`; qualquer outro status retorna 409. Não usa dados de cartão."
+      responses:
+        "200":
+          description: "Pedido pago."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Conflito de regra de negócio ou transição inválida."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "order"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/orders/{order}/cancel":
+    post:
+      tags:
+        - "Pedidos"
+      summary: "Cancelar pedido pendente"
+      description: "Autenticado. Apenas dono. Cancela pedido aguardando pagamento e devolve estoque na transação; demais status retornam 409."
+      responses:
+        "200":
+          description: "Pedido cancelado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Conflito de regra de negócio ou transição inválida."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "order"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/admin/check":
+    get:
+      tags:
+        - "Administração"
+      summary: "Verificar papel administrador"
+      description: "Autenticado e admin. Cliente recebe 403."
+      responses:
+        "200":
+          description: "Acesso administrativo autorizado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/SimpleMessage"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/admin/orders":
+    get:
+      tags:
+        - "Administração"
+      summary: "Listar pedidos da loja"
+      description: "Apenas admin. Paginação de 15 pedidos por página e filtro opcional por status."
+      responses:
+        "200":
+          description: "Lista paginada com usuário anexado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderPage"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      parameters:
+        -
+          name: "status"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+          description: "Um dos status válidos."
+        -
+          name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+          description: "Página."
+  "/admin/orders/{order}":
+    get:
+      tags:
+        - "Administração"
+      summary: "Detalhar pedido da loja"
+      description: "Apenas admin. Retorna itens e dados do cliente."
+      responses:
+        "200":
+          description: "Pedido detalhado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "order"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/admin/orders/{order}/status":
+    patch:
+      tags:
+        - "Administração"
+      summary: "Avançar status do pedido"
+      description: "Apenas admin. Permite `pago → enviado → entregue`, sem pular etapas. Payload permite todos os status conhecidos, mas o Service rejeita transições indevidas com HTTP 409."
+      responses:
+        "200":
+          description: "Status atualizado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Conflito de regra de negócio ou transição inválida."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "422":
+          description: "Entrada inválida ou regra de negócio violada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ValidationError"
+              examples:
+                invalid_quantity:
+                  summary: "Exemplo de erro de validação"
+                  value:
+                    message: "The quantity field must be at least 1."
+                    errors:
+                      quantity:
+                        - "The quantity field must be at least 1."
+      parameters:
+        -
+          name: "order"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/OrderStatusUpdate"
+            examples:
+              valid:
+                summary: "Marcar como enviado"
+                value:
+                  status: "enviado"
+              invalid:
+                summary: "Inválido: status inexistente"
+                value:
+                  status: "aguardando_reembolso"
+  "/admin/orders/{order}/pay":
+    post:
+      tags:
+        - "Administração"
+      summary: "Pagamento simulado pelo admin"
+      description: "Apenas admin. Conclui pagamento de pedido aguardando pagamento."
+      responses:
+        "200":
+          description: "Pagamento confirmado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Conflito de regra de negócio ou transição inválida."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "order"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+  "/admin/orders/{order}/cancel":
+    post:
+      tags:
+        - "Administração"
+      summary: "Cancelar pedido pelo admin"
+      description: "Apenas admin. Somente pedidos aguardando pagamento; devolve estoque."
+      responses:
+        "200":
+          description: "Pedido cancelado."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/OrderEnvelope"
+        "401":
+          description: "Não autenticado; sessão ausente ou expirada."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Operação proibida para este usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Recurso inexistente, inativo ou fora do escopo do usuário."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Conflito de regra de negócio ou transição inválida."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        "419":
+          description: "Token CSRF ausente/expirado em requisição de escrita."
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      parameters:
+        -
+          name: "order"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+components:
+  schemas:
+    User:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        email:
+          type: "string"
+          format: "email"
+        role:
+          type: "string"
+          enum:
+            - "cliente"
+            - "admin"
+        email_verified_at:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        created_at:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        updated_at:
+          type: "string"
+          format: "date-time"
+          nullable: true
+      required:
+        - "id"
+        - "name"
+        - "email"
+        - "role"
+    LoginUser:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        email:
+          type: "string"
+          format: "email"
+        role:
+          type: "string"
+          enum:
+            - "cliente"
+            - "admin"
+      required:
+        - "id"
+        - "name"
+        - "email"
+        - "role"
+    MergeWarning:
+      type: "object"
+      properties:
+        product_id:
+          type: "integer"
+        message:
+          type: "string"
+        requested_quantity:
+          type: "integer"
+        applied_quantity:
+          type: "integer"
+      required:
+        - "product_id"
+        - "message"
+    Merge:
+      type: "object"
+      properties:
+        warnings:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/MergeWarning"
+      required:
+        - "warnings"
+    RegisterResponse:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        data:
+          type: "object"
+          properties:
+            id:
+              type: "integer"
+            name:
+              type: "string"
+            email:
+              type: "string"
+            role:
+              type: "string"
+            cart_merge:
+              "$ref": "#/components/schemas/Merge"
+          required:
+            - "id"
+            - "name"
+            - "email"
+            - "role"
+            - "cart_merge"
+      required:
+        - "message"
+        - "data"
+    LoginResponse:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        data:
+          type: "object"
+          properties:
+            user:
+              "$ref": "#/components/schemas/LoginUser"
+            cart_merge:
+              "$ref": "#/components/schemas/Merge"
+          required:
+            - "user"
+            - "cart_merge"
+      required:
+        - "message"
+        - "data"
+    SimpleMessage:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+      required:
+        - "message"
+    Category:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        slug:
+          type: "string"
+      required:
+        - "id"
+        - "name"
+        - "slug"
+    Product:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        description:
+          type: "string"
+          nullable: true
+        price_cents:
+          type: "integer"
+        stock_quantity:
+          type: "integer"
+        image_path:
+          type: "string"
+          nullable: true
+        category:
+          "$ref": "#/components/schemas/Category"
+      required:
+        - "id"
+        - "name"
+        - "price_cents"
+        - "stock_quantity"
+        - "category"
+    CartProduct:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        name:
+          type: "string"
+        price_cents:
+          type: "integer"
+        stock_quantity:
+          type: "integer"
+        is_active:
+          type: "boolean"
+      required:
+        - "id"
+        - "name"
+        - "price_cents"
+        - "stock_quantity"
+        - "is_active"
+    CartItem:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        product:
+          allOf:
+            -
+              "$ref": "#/components/schemas/CartProduct"
+          nullable: true
+        quantity:
+          type: "integer"
+        line_total_cents:
+          type: "integer"
+      required:
+        - "id"
+        - "product"
+        - "quantity"
+        - "line_total_cents"
+    Cart:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        items:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/CartItem"
+        subtotal_cents:
+          type: "integer"
+      required:
+        - "id"
+        - "items"
+        - "subtotal_cents"
+    Address:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        recipient_name:
+          type: "string"
+        zip_code:
+          type: "string"
+        street:
+          type: "string"
+        number:
+          type: "string"
+        complement:
+          type: "string"
+          nullable: true
+        district:
+          type: "string"
+        city:
+          type: "string"
+        state:
+          type: "string"
+      required:
+        - "id"
+        - "recipient_name"
+        - "zip_code"
+        - "street"
+        - "number"
+        - "district"
+        - "city"
+        - "state"
+    AddressSnapshot:
+      type: "object"
+      properties:
+        recipient_name:
+          type: "string"
+        zip_code:
+          type: "string"
+        street:
+          type: "string"
+        number:
+          type: "string"
+        complement:
+          type: "string"
+          nullable: true
+        district:
+          type: "string"
+        city:
+          type: "string"
+        state:
+          type: "string"
+    OrderItem:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        product_id:
+          type: "integer"
+        product_name:
+          type: "string"
+        unit_price_cents:
+          type: "integer"
+        quantity:
+          type: "integer"
+        subtotal_cents:
+          type: "integer"
+      required:
+        - "id"
+        - "product_id"
+        - "product_name"
+        - "unit_price_cents"
+        - "quantity"
+        - "subtotal_cents"
+    Order:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+        user_id:
+          type: "integer"
+        address_id:
+          type: "integer"
+          nullable: true
+        address_snapshot:
+          "$ref": "#/components/schemas/AddressSnapshot"
+        subtotal_cents:
+          type: "integer"
+        shipping_cents:
+          type: "integer"
+        total_cents:
+          type: "integer"
+        status:
+          type: "string"
+          enum:
+            - "aguardando_pagamento"
+            - "pago"
+            - "enviado"
+            - "entregue"
+            - "cancelado"
+        paid_at:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        created_at:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        items:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/OrderItem"
+        user:
+          "$ref": "#/components/schemas/LoginUser"
+      required:
+        - "id"
+        - "user_id"
+        - "subtotal_cents"
+        - "shipping_cents"
+        - "total_cents"
+        - "status"
+    PaginationLinks:
+      type: "object"
+      properties:
+        first:
+          type: "string"
+          nullable: true
+        last:
+          type: "string"
+          nullable: true
+        prev:
+          type: "string"
+          nullable: true
+        next:
+          type: "string"
+          nullable: true
+      required:
+        - "first"
+        - "last"
+        - "prev"
+        - "next"
+    PaginationMeta:
+      type: "object"
+      properties:
+        current_page:
+          type: "integer"
+        last_page:
+          type: "integer"
+        per_page:
+          type: "integer"
+        total:
+          type: "integer"
+        from:
+          type: "integer"
+          nullable: true
+        to:
+          type: "integer"
+          nullable: true
+        links:
+          type: "array"
+          items:
+            type: "object"
+            additionalProperties: true
+      additionalProperties: true
+    ProductPage:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Product"
+        links:
+          "$ref": "#/components/schemas/PaginationLinks"
+        meta:
+          "$ref": "#/components/schemas/PaginationMeta"
+      required:
+        - "data"
+        - "links"
+        - "meta"
+    OrderPage:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Order"
+        links:
+          "$ref": "#/components/schemas/PaginationLinks"
+        meta:
+          "$ref": "#/components/schemas/PaginationMeta"
+      required:
+        - "data"
+        - "links"
+        - "meta"
+    CategoryList:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Category"
+      required:
+        - "data"
+    AddressList:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Address"
+      required:
+        - "data"
+    ProductEnvelope:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/Product"
+      required:
+        - "data"
+    CategoryEnvelope:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/Category"
+      required:
+        - "data"
+    CartEnvelope:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/Cart"
+      required:
+        - "data"
+    AddressEnvelope:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/Address"
+      required:
+        - "data"
+    OrderEnvelope:
+      type: "object"
+      properties:
+        data:
+          "$ref": "#/components/schemas/Order"
+      required:
+        - "data"
+    ProductWriteResponse:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        data:
+          "$ref": "#/components/schemas/Product"
+      required:
+        - "message"
+        - "data"
+    CategoryWriteResponse:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        data:
+          "$ref": "#/components/schemas/Category"
+      required:
+        - "message"
+        - "data"
+    AddressWriteResponse:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        data:
+          "$ref": "#/components/schemas/Address"
+      required:
+        - "message"
+        - "data"
+    RegisterRequest:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          maxLength: 120
+        email:
+          type: "string"
+          format: "email"
+          maxLength: 255
+        password:
+          type: "string"
+          minLength: 8
+        password_confirmation:
+          type: "string"
+          minLength: 8
+      required:
+        - "name"
+        - "email"
+        - "password"
+        - "password_confirmation"
+    LoginRequest:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          format: "email"
+        password:
+          type: "string"
+      required:
+        - "email"
+        - "password"
+    ProductWrite:
+      type: "object"
+      properties:
+        category_id:
+          type: "integer"
+        name:
+          type: "string"
+          maxLength: 150
+        description:
+          type: "string"
+          nullable: true
+        price_cents:
+          type: "integer"
+          minimum: 0
+        stock_quantity:
+          type: "integer"
+          minimum: 0
+        image_path:
+          type: "string"
+          nullable: true
+        is_active:
+          type: "boolean"
+      required:
+        - "category_id"
+        - "name"
+        - "price_cents"
+        - "stock_quantity"
+    ProductUpdate:
+      type: "object"
+      properties:
+        category_id:
+          type: "integer"
+        name:
+          type: "string"
+          maxLength: 150
+        description:
+          type: "string"
+          nullable: true
+        price_cents:
+          type: "integer"
+          minimum: 0
+        stock_quantity:
+          type: "integer"
+          minimum: 0
+        image_path:
+          type: "string"
+          nullable: true
+        is_active:
+          type: "boolean"
+    CategoryWrite:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          maxLength: 120
+      required:
+        - "name"
+    AddressWrite:
+      type: "object"
+      properties:
+        recipient_name:
+          type: "string"
+          maxLength: 150
+        zip_code:
+          type: "string"
+          pattern: "^\\d{5}-?\\d{3}$"
+        street:
+          type: "string"
+          maxLength: 150
+        number:
+          type: "string"
+          maxLength: 20
+        complement:
+          type: "string"
+          nullable: true
+        district:
+          type: "string"
+        city:
+          type: "string"
+        state:
+          type: "string"
+          minLength: 2
+          maxLength: 2
+      required:
+        - "recipient_name"
+        - "zip_code"
+        - "street"
+        - "number"
+        - "district"
+        - "city"
+        - "state"
+    AddressUpdate:
+      type: "object"
+      properties:
+        recipient_name:
+          type: "string"
+        zip_code:
+          type: "string"
+          pattern: "^\\d{5}-?\\d{3}$"
+        street:
+          type: "string"
+        number:
+          type: "string"
+        complement:
+          type: "string"
+          nullable: true
+        district:
+          type: "string"
+        city:
+          type: "string"
+        state:
+          type: "string"
+          minLength: 2
+          maxLength: 2
+    CartAdd:
+      type: "object"
+      properties:
+        product_id:
+          type: "integer"
+        quantity:
+          type: "integer"
+          minimum: 1
+      required:
+        - "product_id"
+        - "quantity"
+    CartUpdate:
+      type: "object"
+      properties:
+        quantity:
+          type: "integer"
+          minimum: 0
+      required:
+        - "quantity"
+    OrderCreate:
+      type: "object"
+      properties:
+        address_id:
+          type: "integer"
+          minimum: 1
+      required:
+        - "address_id"
+    OrderStatusUpdate:
+      type: "object"
+      properties:
+        status:
+          type: "string"
+          enum:
+            - "aguardando_pagamento"
+            - "pago"
+            - "enviado"
+            - "entregue"
+            - "cancelado"
+      required:
+        - "status"
+    ErrorResponse:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+      required:
+        - "message"
+    ValidationError:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        errors:
+          type: "object"
+          additionalProperties:
+            type: "array"
+            items:
+              type: "string"
+      required:
+        - "message"
+        - "errors"
