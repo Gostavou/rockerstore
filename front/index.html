@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RockerStore: instrumentos musicais para o seu próximo som.">
+  <title>RockerStore | Instrumentos musicais</title>
+  <link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+  <script src="/js/catalog.js" defer></script>
+</head>
+<body>
+  <a class="visually-hidden-focusable skip-link" href="#catalogo">Ir para os produtos</a>
+  <header class="site-header sticky-top">
+    <nav class="navbar navbar-expand-lg container py-3" aria-label="Menu principal">
+      <a class="navbar-brand brand" href="/">ROCKER<span>STORE</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+        aria-controls="mainNav" aria-expanded="false" aria-label="Abrir navegação">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+          <a class="nav-link active" aria-current="page" href="/">Início</a>
+          <a class="nav-link" href="#catalogo">Instrumentos</a>
+          <a class="nav-link" href="/api/docs" target="_blank" rel="noopener">API / Swagger</a>
+          <span class="nav-link text-secondary">Carrinho e login nas próximas etapas</span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero py-5">
+      <div class="container py-lg-5">
+        <div class="row align-items-center g-4">
+          <div class="col-lg-8">
+            <span class="eyebrow">RockerStore • Instrumentos musicais</span>
+            <h1 class="display-3 fw-bold my-3">Seu próximo som <span>começa aqui.</span></h1>
+            <p class="lead text-secondary col-lg-9">Guitarras, baixos, baterias e equipamentos para transformar inspiração em música.</p>
+            <a class="btn btn-danger btn-lg px-4 mt-2" href="#catalogo">Explorar instrumentos</a>
+          </div>
+          <div class="col-lg-4 text-center" aria-hidden="true">
+            <div class="hero-emblem">ROCK<span>★</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="catalogo" class="container py-5" aria-labelledby="catalogoTitulo">
+      <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
+        <div>
+          <p class="eyebrow mb-2">Nosso catálogo</p>
+          <h2 id="catalogoTitulo" class="fw-bold mb-0">Encontre seu instrumento</h2>
+        </div>
+        <form id="filtros" class="row g-2" aria-label="Filtrar catálogo">
+          <div class="col-sm-auto">
+            <label class="visually-hidden" for="busca">Pesquisar produtos</label>
+            <input id="busca" class="form-control" type="search" placeholder="Buscar instrumento" maxlength="100">
+          </div>
+          <div class="col-sm-auto">
+            <label class="visually-hidden" for="categoria">Categoria</label>
+            <select id="categoria" class="form-select">
+              <option value="">Todas as categorias</option>
+            </select>
+          </div>
+          <div class="col-sm-auto">
+            <button class="btn btn-danger w-100" type="submit">Buscar</button>
+          </div>
+        </form>
+      </div>
+      <p id="status" class="text-secondary" role="status" aria-live="polite">Carregando catálogo...</p>
+      <div id="produtos" class="row g-4" aria-live="polite"></div>
+      <nav class="d-flex align-items-center justify-content-center gap-3 mt-4" aria-label="Paginação de produtos">
+        <button type="button" id="anterior" class="btn btn-outline-light" disabled>Anterior</button>
+        <span id="paginaAtual" class="small text-secondary">Página 1</span>
+        <button type="button" id="proxima" class="btn btn-outline-light" disabled>Próxima</button>
+      </nav>
+    </section>
+  </main>
+
+  <footer class="site-footer py-4 mt-5">
+    <div class="container d-flex flex-column flex-sm-row justify-content-between gap-2">
+      <span class="brand small">ROCKER<span>STORE</span></span>
+      <span class="small text-secondary">Projeto de e-commerce com Laravel, Bootstrap e Docker.</span>
+    </div>
+  </footer>
+</body>
+</html>
