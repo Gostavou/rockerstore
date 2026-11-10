@@ -375,6 +375,22 @@
 
         const items = cart.items || [];
 
+
+        const checkoutLink = document.getElementById("checkoutLink");
+
+        checkoutLink.classList.toggle(
+            "disabled",
+            items.length === 0
+        );
+
+        checkoutLink.setAttribute(
+            "aria-disabled",
+            String(items.length === 0)
+        );
+
+        checkoutLink.tabIndex = items.length === 0 ? -1 : 0;
+
+
         const totalQuantity = items.reduce(
             (total, item) => total + item.quantity,
             0

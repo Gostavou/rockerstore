@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Checkout | RockerStore</title>
+
+    <link rel="stylesheet"
+          href="/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/vendor/bootstrap/bootstrap.bundle.min.js"
+            defer></script>
+    <script src="/js/checkout.js" defer></script>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <nav class="navbar container py-3">
+            <a class="navbar-brand logo" href="/">
+                ROCKER<span>STORE</span>
+            </a>
+
+            <a class="btn btn-outline-light" href="/cart.html">
+                Voltar ao carrinho
+            </a>
+        </nav>
+    </header>
+
+    <main class="container py-5">
+
+        <p class="hero-label">FINALIZAÇÃO DE COMPRA</p>
+        <h1 class="fw-bold mb-4">Checkout</h1>
+
+        <div id="checkoutMessage"
+             class="d-none"
+             role="status"
+             aria-live="polite"></div>
+
+        <div id="loginNotice" class="cart-empty d-none">
+            <h2 class="h4">Faça login para continuar</h2>
+            <p>É necessário estar autenticado para criar pedidos.</p>
+
+            <a href="/login.html?next=%2Fcheckout.html"
+               class="btn btn-danger">
+                Entrar na minha conta
+            </a>
+        </div>
+
+        <div id="emptyNotice" class="cart-empty d-none">
+            <h2 class="h4">Seu carrinho está vazio</h2>
+
+            <a href="/#catalogo" class="btn btn-danger mt-3">
+                Escolher produtos
+            </a>
+        </div>
+
+        <div class="row g-4">
+
+            <section id="addressPanel" class="col-lg-7 d-none">
+
+                <div class="checkout-card">
+                    <h2 class="h4 mb-4">Endereço de entrega</h2>
+
+                    <label for="addressSelect" class="form-label">
+                        Selecionar endereço
+                    </label>
+
+                    <select id="addressSelect"
+                            class="form-select mb-3">
+                        <option value="">Selecione um endereço</option>
+                    </select>
+
+                    <button id="newAddressButton"
+                            type="button"
+                            class="btn btn-outline-light mb-3">
+                        Cadastrar novo endereço
+                    </button>
+
+                    <form id="addressForm" class="d-none">
+
+                        <div class="mb-3">
+                            <label for="recipient_name"
+                                   class="form-label">
+                                Nome do destinatário
+                            </label>
+
+                            <input id="recipient_name"
+                                   name="recipient_name"
+                                   class="form-control"
+                                   maxlength="150"
+                                   required>
+                        </div>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label for="zip_code"
+                                       class="form-label">
+                                    CEP
+                                </label>
+
+                                <input id="zip_code"
+                                       name="zip_code"
+                                       class="form-control"
+                                       pattern="[0-9]{5}-?[0-9]{3}"
+                                       placeholder="00000-000"
+                                       required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="number"
+                                       class="form-label">
+                                    Número
+                                </label>
+
+                                <input id="number"
+                                       name="number"
+                                       class="form-control"
+                                       maxlength="20"
+                                       required>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="street"
+                                       class="form-label">
+                                    Rua
+                                </label>
+
+                                <input id="street"
+                                       name="street"
+                                       class="form-control"
+                                       maxlength="150"
+                                       required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="district"
+                                       class="form-label">
+                                    Bairro
+                                </label>
+
+                                <input id="district"
+                                       name="district"
+                                       class="form-control"
+                                       maxlength="100"
+                                       required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="complement"
+                                       class="form-label">
+                                    Complemento
+                                </label>
+
+                                <input id="complement"
+                                       name="complement"
+                                       class="form-control"
+                                       maxlength="150">
+                            </div>
+
+                            <div class="col-md-8">
+                                <label for="city"
+                                       class="form-label">
+                                    Cidade
+                                </label>
+
+                                <input id="city"
+                                       name="city"
+                                       class="form-control"
+                                       maxlength="100"
+                                       required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="state"
+                                       class="form-label">
+                                    UF
+                                </label>
+
+                                <input id="state"
+                                       name="state"
+                                       class="form-control"
+                                       minlength="2"
+                                       maxlength="2"
+                                       pattern="[A-Za-z]{2}"
+                                       placeholder="PR"
+                                       required>
+                            </div>
+
+                        </div>
+
+                        <button id="saveAddressButton"
+                                type="submit"
+                                class="btn btn-danger mt-4">
+                            Salvar endereço
+                        </button>
+
+                    </form>
+                </div>
+
+            </section>
+
+            <aside id="summaryPanel" class="col-lg-5 d-none">
+
+                <div class="checkout-card">
+                    <h2 class="h4 mb-4">Resumo do pedido</h2>
+
+                    <ul id="summaryItems"
+                        class="list-unstyled"></ul>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <strong id="subtotalText">R$ 0,00</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Frete</span>
+                        <strong id="shippingText">R$ 15,00</strong>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-4">
+                        <strong>Total estimado</strong>
+                        <strong id="totalText" class="cart-total">
+                            R$ 0,00
+                        </strong>
+                    </div>
+
+                    <form id="orderForm">
+                        <button id="createOrderButton"
+                                type="submit"
+                                class="btn btn-danger w-100">
+                            Confirmar pedido
+                        </button>
+                    </form>
+
+                    <p class="small text-secondary mt-3 mb-0">
+                        O estoque, os preços e o total serão
+                        validados novamente pelo servidor.
+                    </p>
+                </div>
+
+            </aside>
+
+        </div>
+
+        <section id="orderPanel" class="checkout-card d-none mt-4">
+
+            <h2 class="h3 fw-bold">Pedido criado</h2>
+
+            <p>
+                Número do pedido:
+                <strong id="orderId"></strong>
+            </p>
+
+            <p>
+                Status:
+                <strong id="orderStatus"></strong>
+            </p>
+
+            <ul id="orderItems" class="list-unstyled"></ul>
+
+            <hr>
+
+            <p>
+                Total:
+                <strong id="orderTotal" class="cart-total"></strong>
+            </p>
+
+            <button id="payButton"
+                    type="button"
+                    class="btn btn-danger">
+                Simular pagamento
+            </button>
+
+            <p id="paymentMessage"
+               class="text-secondary mt-3"></p>
+
+            <a href="/" class="btn btn-outline-light mt-2">
+                Voltar à loja
+            </a>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

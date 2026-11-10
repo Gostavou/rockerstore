@@ -1,13 +1,11 @@
+
 "use strict";
 
 (() => {
 
     const loginForm = document.getElementById("loginForm");
-
     const registerForm = document.getElementById("registerForm");
-
     const authMessage = document.getElementById("authMessage");
-
 
     function showAuthMessage(text, type = "danger") {
         if (!authMessage) {
@@ -17,7 +15,6 @@
         authMessage.className = "alert alert-" + type;
         authMessage.textContent = text;
     }
-
 
     function getXsrfToken() {
         const cookie = document.cookie
@@ -32,7 +29,6 @@
             cookie.substring("XSRF-TOKEN=".length)
         );
     }
-
 
     async function sendRequest(url, method, data = null) {
 
@@ -100,7 +96,6 @@
         return result;
     }
 
-
     async function handleAuth(event, type) {
 
         event.preventDefault();
@@ -134,6 +129,14 @@
             ? "/api/auth/login"
             : "/api/auth/register";
 
+        const next = new URLSearchParams(
+            window.location.search
+        ).get("next");
+
+        const destination = next === "/checkout.html"
+            ? next
+            : "/";
+
         submitButton.disabled = true;
         submitButton.textContent = "Processando...";
 
@@ -158,12 +161,13 @@
                     "warning"
                 );
 
-    
                 const link = document.createElement("a");
 
-                link.href = "/";
+                link.href = destination;
                 link.className = "btn btn-danger mt-2";
-                link.textContent = "Continuar para a loja";
+                link.textContent = destination === "/checkout.html"
+                    ? "Continuar para o checkout"
+                    : "Continuar para a loja";
 
                 authMessage.appendChild(link);
 
@@ -177,7 +181,7 @@
                 "success"
             );
 
-            window.location.assign("/");
+            window.location.assign(destination);
 
         } catch (error) {
             showAuthMessage(error.message);
@@ -189,7 +193,6 @@
                 : "Criar conta";
         }
     }
-
 
     async function loadSession() {
 
@@ -237,6 +240,7 @@
     }
 
     async function logout() {
+
         const logoutButton = document.getElementById("logoutButton");
 
         logoutButton.disabled = true;
@@ -254,7 +258,6 @@
             alert(error.message);
         }
     }
-
 
     if (loginForm) {
         loginForm.addEventListener("submit", event => {

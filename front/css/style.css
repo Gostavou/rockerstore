@@ -298,3 +298,40 @@ html {
         position: static;
     }
 }
+
+
+.checkout-card {
+    background-color: var(--rock-gray);
+    border: 1px solid var(--rock-border);
+    border-radius: 12px;
+    padding: 28px;
+}
+
+.checkout-card .form-control,
+.checkout-card .form-select {
+    background-color: #22242b;
+    border-color: #454750;
+    color: white;
+}
+
+.checkout-card .form-control:focus,
+.checkout-card .form-select:focus {
+    border-color: var(--rock-red);
+    box-shadow: none;
+}
+
+#summaryItems li,
+#orderItems li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rock-border);
+}
+
+#paymentMessage {
+    line-height: 1.6;
+}
+
+@media (max-width: 576px) {
+    .checkout-card {
+        padding: 20px;
+    }
+}
