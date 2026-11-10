@@ -54,6 +54,17 @@ class ProductService
             ->withQueryString();
     }
 
+
+    public function listForAdmin(): LengthAwarePaginator
+    {
+        return Product::query()
+            ->with('category')
+            ->orderBy('name')
+            ->paginate(12)
+            ->withQueryString();
+    }
+
+
     public function getById(int $id): Product
     {
         return Product::query()

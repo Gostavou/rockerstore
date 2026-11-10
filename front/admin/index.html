@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração | RockerStore</title>
+    <link rel="stylesheet"
+          href="/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="/css/style.css">
+
+    <link rel="stylesheet"
+          href="/admin/admin.css">
+
+    <script type="module"
+            src="/admin/admin.js"></script>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <nav class="navbar container py-3">
+
+            <a class="navbar-brand logo" href="/">
+                ROCKER<span>STORE</span>
+            </a>
+
+            <a href="/" class="btn btn-outline-light">
+                Voltar à loja
+            </a>
+
+        </nav>
+    </header>
+
+    <main class="container py-5">
+
+        <p class="hero-label">GERENCIAMENTO</p>
+        <h1 class="fw-bold mb-4">Painel administrativo</h1>
+
+        <div id="admin-status"
+             class="admin-status"
+             role="status"
+             aria-live="polite">
+            Verificando acesso...
+        </div>
+
+        <section id="admin-dashboard" hidden>
+
+            <nav class="admin-navigation mb-4"
+                 aria-label="Seções administrativas">
+
+                <button class="admin-tab active"
+                        data-tab="products"
+                        type="button">
+                    Produtos
+                </button>
+
+                <button class="admin-tab"
+                        data-tab="categories"
+                        type="button">
+                    Categorias
+                </button>
+
+                <button class="admin-tab"
+                        data-tab="orders"
+                        type="button">
+                    Pedidos
+                </button>
+
+            </nav>
+
+            <section id="products-section">
+
+                <div class="row g-4">
+
+                    <div class="col-lg-5">
+                        <div class="admin-card">
+
+                            <h2 id="product-form-title" class="h4 mb-4">
+                                Cadastrar produto
+                            </h2>
+
+                            <form id="product-form">
+
+                                <label for="product-name"
+                                       class="form-label">
+                                    Nome
+                                </label>
+
+                                <input id="product-name"
+                                       class="form-control mb-3"
+                                       maxlength="150"
+                                       required>
+
+                                <label for="product-category"
+                                       class="form-label">
+                                    Categoria
+                                </label>
+
+                                <select id="product-category"
+                                        class="form-select mb-3"
+                                        required>
+                                    <option value="">Selecione</option>
+                                </select>
+
+                                <label for="product-description"
+                                       class="form-label">
+                                    Descrição
+                                </label>
+
+                                <textarea id="product-description"
+                                          class="form-control mb-3"
+                                          rows="3"></textarea>
+
+                                <div class="row g-3 mb-3">
+
+                                    <div class="col-sm-6">
+                                        <label for="product-price"
+                                               class="form-label">
+                                            Preço (R$)
+                                        </label>
+
+                                        <input id="product-price"
+                                               class="form-control"
+                                               type="number"
+                                               min="0"
+                                               step="0.01"
+                                               required>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <label for="product-stock"
+                                               class="form-label">
+                                            Estoque
+                                        </label>
+
+                                        <input id="product-stock"
+                                               class="form-control"
+                                               type="number"
+                                               min="0"
+                                               step="1"
+                                               required>
+                                    </div>
+
+                                </div>
+
+                                <label for="product-image"
+                                       class="form-label">
+                                    Caminho da imagem
+                                </label>
+
+                                <input id="product-image"
+                                       class="form-control mb-4"
+                                       maxlength="255">
+
+
+                                <div class="form-check form-switch mb-4">
+                                    <input id="product-active"
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        role="switch"
+                                        checked>
+
+                                    <label for="product-active" class="form-check-label">
+                                        Produto ativo na loja
+                                    </label>
+                                </div>
+
+
+                                <div class="d-flex gap-2 flex-wrap">
+
+                                    <button type="submit"
+                                            class="btn btn-danger">
+                                        Salvar produto
+                                    </button>
+
+                                    <button id="cancel-product-edit"
+                                            type="button"
+                                            class="btn btn-outline-light"
+                                            hidden>
+                                        Cancelar
+                                    </button>
+
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="admin-card">
+
+                            <h2 class="h4 mb-4">Produtos cadastrados</h2>
+
+                            <div id="admin-products-list"></div>
+
+                            <div class="admin-pagination mt-4">
+
+                                <button id="products-prev"
+                                        class="btn btn-outline-light"
+                                        type="button">
+                                    Anterior
+                                </button>
+
+                                <span id="products-page">Página 1</span>
+
+                                <button id="products-next"
+                                        class="btn btn-outline-light"
+                                        type="button">
+                                    Próxima
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="categories-section" hidden>
+
+                <div class="row g-4">
+
+                    <div class="col-lg-5">
+                        <div class="admin-card">
+
+                            <h2 id="category-form-title"
+                                class="h4 mb-4">
+                                Cadastrar categoria
+                            </h2>
+
+                            <form id="category-form">
+
+                                <label for="category-name"
+                                       class="form-label">
+                                    Nome da categoria
+                                </label>
+
+                                <input id="category-name"
+                                       class="form-control mb-3"
+                                       maxlength="120"
+                                       required>
+
+                                <div class="d-flex gap-2">
+
+                                    <button type="submit"
+                                            class="btn btn-danger">
+                                        Salvar
+                                    </button>
+
+                                    <button id="cancel-category-edit"
+                                            type="button"
+                                            class="btn btn-outline-light"
+                                            hidden>
+                                        Cancelar
+                                    </button>
+
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="admin-card">
+
+                            <h2 class="h4 mb-4">
+                                Categorias cadastradas
+                            </h2>
+
+                            <div id="admin-categories-list"></div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="orders-section" hidden>
+
+                <div class="admin-card mb-4">
+
+                    <div class="admin-heading">
+
+                        <div>
+                            <h2 class="h4 mb-1">
+                                Pedidos recebidos
+                            </h2>
+
+                            <p class="text-secondary mb-0">
+                                Total:
+                                <strong id="admin-orders-count">0</strong>
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="orders-filter"
+                                   class="visually-hidden">
+                                Filtrar por status
+                            </label>
+
+                            <select id="orders-filter"
+                                    class="form-select">
+
+                                <option value="">Todos</option>
+
+                                <option value="aguardando_pagamento">
+                                    Aguardando pagamento
+                                </option>
+
+                                <option value="pago">Pago</option>
+                                <option value="enviado">Enviado</option>
+                                <option value="entregue">Entregue</option>
+                                <option value="cancelado">Cancelado</option>
+
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-dark align-middle">
+
+                            <thead>
+                                <tr>
+                                    <th>Pedido</th>
+                                    <th>Cliente</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="admin-orders-body"></tbody>
+
+                        </table>
+
+                    </div>
+
+                    <div class="admin-pagination">
+
+                        <button id="orders-prev"
+                                class="btn btn-outline-light"
+                                type="button">
+                            Anterior
+                        </button>
+
+                        <span id="orders-page">Página 1</span>
+
+                        <button id="orders-next"
+                                class="btn btn-outline-light"
+                                type="button">
+                            Próxima
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div id="admin-order-details"
+                     class="admin-card"
+                     hidden>
+
+                    <h2 class="h4 mb-4">Detalhes do pedido</h2>
+
+                    <div id="admin-order-content"></div>
+
+                    <div id="admin-order-actions"
+                         class="d-flex flex-wrap gap-2 mt-4">
+                    </div>
+
+                </div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

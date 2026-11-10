@@ -1,387 +1,348 @@
-"use strict";
+const $ = id => document.getElementById(id);
+const checkoutMessage = $('#checkoutMessage');
+const addressSelect = $('#addressSelect');
+const addressForm = $('#addressForm');
+const orderForm = $('#orderForm');
+const payButton = $('#payButton');
 
-(() => {
-    const $ = id => document.getElementById(id);
+const SHIPPING_CENTS = 1500;
 
-    const SHIPPING_CENTS = 1500;
+const statusLabels = {
+    aguardando_pagamento: 'Aguardando pagamento',
+    pago: 'Pago',
+    enviado: 'Enviado',
+    entregue: 'Entregue',
+    cancelado: 'Cancelado'
+};
 
-    const money = cents => new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(cents / 100);
+const money = cents => new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+}).format(Number(cents ?? 0) / 100);
 
-    function showMessage(text, type = "danger") {
-        const element = $("checkoutMessage");
+function createElement(tag, value = '', className = '') {
+    const element = document.createElement(tag);
+    element.textContent = value;
+    element.className = className;
+    return element;
+}
 
-        element.className = "alert alert-" + type;
-        element.textContent = text;
-    }
+function setMessage(text, type = 'danger') {
+    checkoutMessage.className = `alert alert-${type}`;
+    checkoutMessage.textContent = text;
+}
 
-    function getXsrfToken() {
-        const cookie = document.cookie
-            .split("; ")
-            .find(item => item.startsWith("XSRF-TOKEN="));
+function getXsrfToken() {
+    const cookie = document.cookie.split('; ')
+        .find(item => item.startsWith('XSRF-TOKEN='));
 
-        return cookie
-            ? decodeURIComponent(cookie.split("=")[1])
-            : null;
-    }
+    return cookie
+        ? decodeURIComponent(cookie.substring('XSRF-TOKEN='.length))
+        : null;
+}
 
-    async function api(url, method = "GET", data = null) {
-        const headers = {
-            "Accept": "application/json"
-        };
+async function apiRequest(path, options = {}) {
+    const method = (options.method ?? 'GET').toUpperCase();
+    const headers = { Accept: 'application/json' };
 
-        if (method !== "GET") {
-            const csrf = await fetch("/sanctum/csrf-cookie", {
-                credentials: "same-origin",
-                headers: { "Accept": "application/json" }
-            });
-
-            if (!csrf.ok) {
-                throw new Error("Falha ao inicializar CSRF.");
-            }
-
-            const token = getXsrfToken();
-
-            if (!token) {
-                throw new Error("Token CSRF indisponível.");
-            }
-
-            headers["X-XSRF-TOKEN"] = token;
-        }
-
-        if (data !== null) {
-            headers["Content-Type"] = "application/json";
-        }
-
-        const response = await fetch(url, {
-            method,
-            credentials: "same-origin",
-            headers,
-            body: data !== null
-                ? JSON.stringify(data)
-                : undefined
+    if (method !== 'GET') {
+        const csrf = await fetch('/sanctum/csrf-cookie', {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' }
         });
 
-        const result = await response.json()
-            .catch(() => ({}));
-
-        if (!response.ok) {
-            const validation = Object.values(result.errors || {})
-                .flat()
-                .join(" ");
-
-            const error = new Error(
-                validation ||
-                result.message ||
-                "Erro na requisição."
-            );
-
-            error.status = response.status;
-
-            throw error;
+        if (!csrf.ok) {
+            throw new Error('Não foi possível obter o token CSRF.');
         }
 
-        return result;
+        const token = getXsrfToken();
+        if (!token) throw new Error('Token CSRF indisponível.');
+
+        headers['X-XSRF-TOKEN'] = token;
     }
 
-    function makeElement(tag, text, className = "") {
-        const element = document.createElement(tag);
-        element.className = className;
-        element.textContent = text;
-        return element;
+    if (options.data !== undefined) {
+        headers['Content-Type'] = 'application/json';
     }
 
-    function renderSummary(cart) {
-        const list = $("summaryItems");
-        list.replaceChildren();
+    const response = await fetch(`/api/${path}`, {
+        method,
+        credentials: 'same-origin',
+        headers,
+        body: options.data !== undefined
+            ? JSON.stringify(options.data)
+            : undefined
+    });
 
-        for (const item of cart.items) {
-            const name = item.product?.name || "Produto indisponível";
+    const result = await response.json().catch(() => ({}));
 
-            const li = makeElement(
-                "li",
+    if (!response.ok) {
+        const validation = Object.values(result.errors ?? {})
+            .flat().join(' ');
+
+        const error = new Error(
+            validation || result.message || `Erro HTTP ${response.status}`
+        );
+
+        error.status = response.status;
+        throw error;
+    }
+
+    return result;
+}
+
+function renderSummary(cart) {
+    const list = $('#summaryItems');
+    list.replaceChildren();
+
+    for (const item of cart.items ?? []) {
+        const name = item.product?.name ?? 'Produto indisponível';
+
+        list.appendChild(
+            createElement(
+                'li',
                 `${item.quantity}x ${name} — ${money(item.line_total_cents)}`,
-                "mb-2"
-            );
-
-            list.appendChild(li);
-        }
-
-        $("subtotalText").textContent = money(
-            cart.subtotal_cents
-        );
-
-        $("shippingText").textContent = money(
-            SHIPPING_CENTS
-        );
-
-        $("totalText").textContent = money(
-            cart.subtotal_cents + SHIPPING_CENTS
+                'mb-2'
+            )
         );
     }
 
-    function populateAddresses(addresses, selectedId = null) {
-        const select = $("addressSelect");
-        select.replaceChildren();
+    $('#subtotalText').textContent = money(cart.subtotal_cents);
+    $('#shippingText').textContent = money(SHIPPING_CENTS);
+    $('#totalText').textContent = money(
+        cart.subtotal_cents + SHIPPING_CENTS
+    );
+}
 
-        const placeholder = new Option(
-            "Selecione um endereço",
-            ""
+function renderAddresses(addresses, selectedId = null) {
+    addressSelect.replaceChildren(
+        new Option('Selecione um endereço', '')
+    );
+
+    for (const address of addresses) {
+        const label = [
+            address.recipient_name,
+            `${address.street}, ${address.number}`,
+            `${address.city}/${address.state}`
+        ].join(' — ');
+
+        addressSelect.add(new Option(label, address.id));
+    }
+
+    if (selectedId !== null) {
+        addressSelect.value = String(selectedId);
+    } else if (addresses.length > 0) {
+        addressSelect.value = String(addresses[0].id);
+    }
+
+    $('#createOrderButton').disabled = !addressSelect.value;
+
+    if (addresses.length === 0) {
+        addressForm.classList.remove('d-none');
+    }
+}
+
+async function loadAddresses(selectedId = null) {
+    const response = await apiRequest('addresses');
+    renderAddresses(response.data ?? [], selectedId);
+}
+
+function renderOrder(order) {
+    $('#addressPanel').classList.add('d-none');
+    $('#summaryPanel').classList.add('d-none');
+    $('#emptyNotice').classList.add('d-none');
+    $('#orderPanel').classList.remove('d-none');
+
+    $('#orderId').textContent = order.id;
+    $('#orderStatus').textContent =
+        statusLabels[order.status] ?? order.status;
+    $('#orderTotal').textContent = money(order.total_cents);
+
+    const list = $('#orderItems');
+    list.replaceChildren();
+
+    for (const item of order.items ?? []) {
+        list.appendChild(
+            createElement(
+                'li',
+                `${item.quantity}x ${item.product_name} — ${money(item.subtotal_cents)}`,
+                'mb-2'
+            )
         );
-
-        select.add(placeholder);
-
-        for (const address of addresses) {
-            const label = [
-                address.recipient_name,
-                address.street + ", " + address.number,
-                address.city + "/" + address.state
-            ].join(" — ");
-
-            select.add(new Option(label, address.id));
-        }
-
-        if (selectedId !== null) {
-            select.value = String(selectedId);
-        } else if (addresses.length > 0) {
-            select.value = String(addresses[0].id);
-        }
-
-        $("createOrderButton").disabled = !select.value;
-
-        if (addresses.length === 0) {
-            $("addressForm").classList.remove("d-none");
-        }
     }
 
-    async function loadAddresses(selectedId = null) {
-        const result = await api("/api/addresses");
+    const pending = order.status === 'aguardando_pagamento';
 
-        populateAddresses(result.data, selectedId);
+    payButton.classList.toggle('d-none', !pending);
+    payButton.dataset.orderId = order.id;
+
+    $('#paymentMessage').textContent = pending
+        ? 'O pedido foi criado. O pagamento ainda está pendente.'
+        : order.status === 'pago'
+            ? 'Pagamento simulado confirmado.'
+            : `Status atual: ${statusLabels[order.status] ?? order.status}`;
+}
+
+async function loadCheckout() {
+    try {
+        await apiRequest('user');
+    } catch (error) {
+        if (error.status === 401) {
+            $('#loginNotice').classList.remove('d-none');
+        } else {
+            setMessage(error.message);
+        }
+        return;
     }
 
-    function renderOrder(order) {
-        $("addressPanel").classList.add("d-none");
-        $("summaryPanel").classList.add("d-none");
-        $("emptyNotice").classList.add("d-none");
+    const orderId = new URLSearchParams(
+        window.location.search
+    ).get('order');
 
-        $("orderPanel").classList.remove("d-none");
-
-        $("orderId").textContent = order.id;
-
-        const statuses = {
-            aguardando_pagamento: "Aguardando pagamento",
-            pago: "Pago",
-            enviado: "Enviado",
-            entregue: "Entregue",
-            cancelado: "Cancelado"
-        };
-
-        $("orderStatus").textContent =
-            statuses[order.status] || order.status;
-
-        $("orderTotal").textContent = money(
-            order.total_cents
-        );
-
-        const list = $("orderItems");
-        list.replaceChildren();
-
-        for (const item of order.items || []) {
-            list.appendChild(
-                makeElement(
-                    "li",
-                    `${item.quantity}x ${item.product_name} — ${money(item.subtotal_cents)}`,
-                    "mb-2"
-                )
-            );
-        }
-
-        const canPay = order.status === "aguardando_pagamento";
-
-        $("payButton").classList.toggle("d-none", !canPay);
-        $("payButton").dataset.orderId = order.id;
-
-        $("paymentMessage").textContent = canPay
-            ? "O pedido foi criado. O pagamento ainda está pendente."
-            : order.status === "pago"
-                ? "Pagamento simulado confirmado."
-                : "Status atual: " + $("orderStatus").textContent;
-    }
-
-    async function loadCheckout() {
-        try {
-            await api("/api/user");
-        } catch (error) {
-            if (error.status === 401) {
-                $("loginNotice").classList.remove("d-none");
-            } else {
-                showMessage(error.message);
-            }
-            return;
-        }
-
-        const orderId = new URLSearchParams(
-            window.location.search
-        ).get("order");
-
-        if (orderId !== null) {
-            if (!/^[1-9]\d*$/.test(orderId)) {
-                showMessage("Número de pedido inválido.");
-                return;
-            }
-
-            try {
-                const result = await api(
-                    "/api/orders/" + orderId
-                );
-
-                renderOrder(result.data);
-            } catch (error) {
-                showMessage(error.message);
-            }
-
+    if (orderId !== null) {
+        if (!/^[1-9]\d*$/.test(orderId)) {
+            setMessage('Número de pedido inválido.');
             return;
         }
 
         try {
-            const [cartResult, addressResult] = await Promise.all([
-                api("/api/cart"),
-                api("/api/addresses")
-            ]);
-
-            const cart = cartResult.data;
-
-            if (!cart.items || cart.items.length === 0) {
-                $("emptyNotice").classList.remove("d-none");
-                return;
-            }
-
-            renderSummary(cart);
-
-            populateAddresses(addressResult.data);
-
-            $("addressPanel").classList.remove("d-none");
-            $("summaryPanel").classList.remove("d-none");
+            const response = await apiRequest(`orders/${orderId}`);
+            renderOrder(response.data);
         } catch (error) {
-            showMessage(error.message);
+            setMessage(error.message);
         }
+        return;
     }
 
-    $("newAddressButton").addEventListener("click", () => {
-        $("addressForm").classList.toggle("d-none");
-    });
+    try {
+        const [cartResponse, addressResponse] = await Promise.all([
+            apiRequest('cart'),
+            apiRequest('addresses')
+        ]);
 
-    $("addressSelect").addEventListener("change", () => {
-        $("createOrderButton").disabled =
-            !$("addressSelect").value;
-    });
+        const cart = cartResponse.data;
 
-    $("addressForm").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const button = $("saveAddressButton");
-        button.disabled = true;
-
-        const data = Object.fromEntries(
-            new FormData(event.currentTarget)
-        );
-
-        data.state = data.state.trim().toUpperCase();
-        data.complement = data.complement.trim() || null;
-
-        try {
-            const result = await api(
-                "/api/addresses",
-                "POST",
-                data
-            );
-
-            await loadAddresses(result.data.id);
-
-            $("addressForm").reset();
-            $("addressForm").classList.add("d-none");
-
-            showMessage(
-                "Endereço cadastrado com sucesso!",
-                "success"
-            );
-        } catch (error) {
-            showMessage(error.message);
-        } finally {
-            button.disabled = false;
-        }
-    });
-
-    $("orderForm").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const addressId = Number(
-            $("addressSelect").value
-        );
-
-        if (!Number.isInteger(addressId) || addressId < 1) {
-            showMessage("Selecione um endereço.");
+        if (!cart.items || cart.items.length === 0) {
+            $('#emptyNotice').classList.remove('d-none');
             return;
         }
 
-        const button = $("createOrderButton");
-        button.disabled = true;
+        renderSummary(cart);
+        renderAddresses(addressResponse.data ?? []);
 
-        try {
-            const result = await api(
-                "/api/orders",
-                "POST",
-                { address_id: addressId }
-            );
+        $('#addressPanel').classList.remove('d-none');
+        $('#summaryPanel').classList.remove('d-none');
 
-            const order = result.data;
+    } catch (error) {
+        setMessage(error.message);
+    }
+}
 
-            window.history.replaceState(
-                {},
-                "",
-                "/checkout.html?order=" + order.id
-            );
+async function saveAddress(event) {
+    event.preventDefault();
 
-            renderOrder(order);
+    const button = $('#saveAddressButton');
+    const data = Object.fromEntries(new FormData(addressForm));
 
-            showMessage(
-                "Pedido criado com sucesso!",
-                "success"
-            );
-        } catch (error) {
-            showMessage(error.message);
-        } finally {
-            button.disabled = false;
-        }
+    data.state = data.state.trim().toUpperCase();
+    data.complement = data.complement.trim() || null;
+
+    button.disabled = true;
+
+    try {
+        const response = await apiRequest('addresses', {
+            method: 'POST',
+            data
+        });
+
+        await loadAddresses(response.data.id);
+
+        addressForm.reset();
+        addressForm.classList.add('d-none');
+        setMessage('Endereço cadastrado com sucesso!', 'success');
+
+    } catch (error) {
+        setMessage(error.message);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function createOrder(event) {
+    event.preventDefault();
+
+    const addressId = Number(addressSelect.value);
+
+    if (!Number.isInteger(addressId) || addressId < 1) {
+        setMessage('Selecione um endereço.');
+        return;
+    }
+
+    const button = $('#createOrderButton');
+    button.disabled = true;
+
+    try {
+        const response = await apiRequest('orders', {
+            method: 'POST',
+            data: { address_id: addressId }
+        });
+
+        const order = response.data;
+
+        window.history.replaceState(
+            {},
+            '',
+            `/checkout.html?order=${order.id}`
+        );
+
+        renderOrder(order);
+        setMessage('Pedido criado com sucesso!', 'success');
+
+    } catch (error) {
+        setMessage(error.message);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function payOrder() {
+    const orderId = payButton.dataset.orderId;
+    if (!orderId) return;
+
+    payButton.disabled = true;
+
+    try {
+        const response = await apiRequest(`orders/${orderId}/pay`, {
+            method: 'POST'
+        });
+
+        renderOrder(response.data);
+        setMessage('Pagamento simulado realizado com sucesso!', 'success');
+
+    } catch (error) {
+        setMessage(error.message);
+    } finally {
+        payButton.disabled = false;
+    }
+}
+
+function bindEvents() {
+    $('#newAddressButton').addEventListener('click', () => {
+        addressForm.classList.toggle('d-none');
     });
 
-    $("payButton").addEventListener("click", async () => {
-        const button = $("payButton");
-        const orderId = button.dataset.orderId;
-
-        button.disabled = true;
-
-        try {
-            const result = await api(
-                "/api/orders/" + orderId + "/pay",
-                "POST"
-            );
-
-            renderOrder(result.data);
-
-            showMessage(
-                "Pagamento simulado realizado com sucesso!",
-                "success"
-            );
-        } catch (error) {
-            showMessage(error.message);
-        } finally {
-            button.disabled = false;
-        }
+    addressSelect.addEventListener('change', () => {
+        $('#createOrderButton').disabled = !addressSelect.value;
     });
 
+    addressForm.addEventListener('submit', saveAddress);
+    orderForm.addEventListener('submit', createOrder);
+    payButton.addEventListener('click', payOrder);
+}
+
+function initializeCheckout() {
+    bindEvents();
     loadCheckout();
-})();
+}
+
+initializeCheckout();

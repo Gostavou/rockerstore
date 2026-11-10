@@ -17,6 +17,7 @@ class ProductResource extends JsonResource
             'price_cents' => $this->price_cents,
 
             'stock_quantity' => $this->stock_quantity,
+            'is_active' => $this->is_active,
 
             'image_path' => $this->image_path,
 
@@ -24,6 +25,8 @@ class ProductResource extends JsonResource
                 'id' => $this->category->id,
                 'name' => $this->category->name,
                 'slug' => $this->category->slug,
+
+
             ],
         ];
     }

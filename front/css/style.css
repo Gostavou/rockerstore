@@ -361,3 +361,39 @@ html {
     font-size: 0.85rem;
     padding: 9px 12px;
 }
+
+
+.admin-list-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rock-border);
+}
+
+.admin-list-row:last-child {
+    border-bottom: none;
+}
+
+.admin-list-row > div:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#adminOrderDetails {
+    scroll-margin-top: 110px;
+}
+
+#adminOrderItems li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rock-border);
+}
+
+@media (max-width: 576px) {
+    .admin-list-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

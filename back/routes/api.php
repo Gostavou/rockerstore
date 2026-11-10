@@ -164,6 +164,11 @@ Route::middleware('auth:sanctum')->group(function () {
                 'store',
             ]);
 
+            Route::get('/products', [
+                ProductController::class,
+                'indexAdmin',
+            ]);
+
             Route::put('/products/{product}', [
                 ProductController::class,
                 'update',

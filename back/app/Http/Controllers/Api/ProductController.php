@@ -28,6 +28,15 @@ class ProductController extends Controller
         return ProductResource::collection($products);
     }
 
+
+    public function indexAdmin(): AnonymousResourceCollection
+    {
+        $products = $this->productService->listForAdmin();
+
+        return ProductResource::collection($products);
+    }
+
+
     public function show(int $product): ProductResource
     {
         $productFound = $this->productService->getById(
