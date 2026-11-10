@@ -1,36 +1,234 @@
 
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>RockerStore</title>
+    <title>RockerStore | Instrumentos Musicais</title>
+
+    <link rel="stylesheet"
+          href="/vendor/bootstrap/bootstrap.min.css">
+
+    <link rel="stylesheet"
+          href="/css/style.css">
+
+    <script src="/vendor/bootstrap/bootstrap.bundle.min.js"
+            defer></script>
+
+    <script src="/js/app.js" defer></script>
 </head>
 
-<body style="
-    background-color: #121212;
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 80px 20px;
-">
+<body>
 
-    <h1 style="color: #dc3545;">
-        RockerStore
-    </h1>
+    <!-- NAVEGAÇÃO -->
+    <header class="site-header sticky-top">
+        <nav class="navbar navbar-expand-lg container py-3">
 
-    <h2>Loja de instrumentos musicais</h2>
+            <a class="navbar-brand logo" href="/">
+                ROCKER<span>STORE</span>
+            </a>
 
-    <p>Frontend funcionando através do proxy Nginx.</p>
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarMenu"
+                    aria-label="Abrir menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-    <p>
-        <a href="/api/docs" style="color: #ff7070;">
-            Abrir documentação Swagger
-        </a>
-    </p>
+            <div class="collapse navbar-collapse"
+                 id="navbarMenu">
+
+                <div class="navbar-nav ms-auto gap-lg-3">
+                    <a class="nav-link active" href="/">
+                        Início
+                    </a>
+
+                    <a class="nav-link" href="#catalogo">
+                        Produtos
+                    </a>
+
+                    <a class="nav-link" href="/api/docs">
+                        Swagger
+                    </a>
+
+                    <span class="nav-link">
+                        Carrinho:
+                        <strong id="cartCount">0</strong>
+                    </span>
+                </div>
+            </div>
+
+        </nav>
+    </header>
+
+    <!-- DESTAQUE -->
+    <main>
+
+        <section class="hero">
+            <div class="container py-5">
+
+                <div class="row align-items-center g-4">
+
+                    <div class="col-lg-7">
+
+                        <p class="hero-label">
+                            O ROCK COMEÇA AQUI
+                        </p>
+
+                        <h1 class="display-3 fw-bold">
+                            ENCONTRE SEU
+                            <span>PRÓXIMO SOM.</span>
+                        </h1>
+
+                        <p class="lead text-secondary my-4">
+                            Guitarras, baixos, baterias e
+                            equipamentos para quem vive
+                            a música.
+                        </p>
+
+                        <a href="#catalogo"
+                           class="btn btn-danger btn-lg px-4">
+                            Explorar instrumentos
+                        </a>
+
+                    </div>
+
+                    <div class="col-lg-5 text-center">
+                        <div class="hero-symbol"
+                             aria-hidden="true">
+                            🎸
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CATÁLOGO -->
+        <section class="container py-5"
+                 id="catalogo">
+
+            <div class="mb-4">
+                <p class="hero-label mb-2">
+                    ROCKERSTORE
+                </p>
+
+                <h2 class="fw-bold">
+                    Nosso catálogo
+                </h2>
+
+                <p class="text-secondary">
+                    Escolha seu próximo instrumento.
+                </p>
+            </div>
+
+            <!-- FILTROS -->
+            <form id="filtroForm" class="row g-3 mb-4">
+
+                <div class="col-md-6">
+
+                    <label for="search"
+                           class="form-label">
+                        Pesquisar produto
+                    </label>
+
+                    <input type="search"
+                           id="search"
+                           class="form-control"
+                           maxlength="100"
+                           placeholder="Ex.: guitarra">
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label for="category"
+                           class="form-label">
+                        Categoria
+                    </label>
+
+                    <select id="category"
+                            class="form-select">
+
+                        <option value="">
+                            Todas as categorias
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+
+                    <button type="submit"
+                            class="btn btn-danger w-100">
+                        Buscar
+                    </button>
+
+                </div>
+
+            </form>
+
+            <!-- MENSAGENS -->
+            <div id="message"
+                 role="status"
+                 aria-live="polite"
+                 class="mb-3"></div>
+
+            <!-- PRODUTOS -->
+            <div id="productList"
+                 class="row g-4"></div>
+
+            <!-- PAGINAÇÃO -->
+            <div class="d-flex justify-content-center
+                        align-items-center gap-3 mt-5">
+
+                <button id="prevPage"
+                        type="button"
+                        class="btn btn-outline-light"
+                        disabled>
+                    Anterior
+                </button>
+
+                <span id="pageInfo">
+                    Página 1
+                </span>
+
+                <button id="nextPage"
+                        type="button"
+                        class="btn btn-outline-light"
+                        disabled>
+                    Próxima
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="footer py-4">
+
+        <div class="container text-center">
+
+            <p class="mb-1 fw-bold">
+                ROCKERSTORE
+            </p>
+
+            <small class="text-secondary">
+                E-commerce de instrumentos musicais.
+            </small>
+
+        </div>
+
+    </footer>
 
 </body>
 </html>
