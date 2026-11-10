@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\AdminOrderController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +74,35 @@ Route::middleware('auth:sanctum')->group(function () {
         'logout',
     ]);
 
+
+    // PEDIDOS E CHECKOUT
+
+    Route::post('/orders', [
+        OrderController::class,
+        'store',
+    ]);
+
+    Route::get('/orders', [
+        OrderController::class,
+        'index',
+    ]);
+
+    Route::get('/orders/{order}', [
+        OrderController::class,
+        'show',
+    ])->whereNumber('order');
+
+    Route::post('/orders/{order}/pay', [
+        OrderController::class,
+        'pay',
+    ])->whereNumber('order');
+
+    Route::post('/orders/{order}/cancel', [
+        OrderController::class,
+        'cancel',
+    ])->whereNumber('order');
+
+
     // ENDEREÇOS DO CLIENTE
 
     Route::get('/addresses', [
@@ -107,6 +138,9 @@ Route::middleware('auth:sanctum')->group(function () {
                 ]);
             });
 
+
+            // CATEGORIAS
+
             Route::post('/categories', [
                 CategoryController::class,
                 'store',
@@ -122,6 +156,9 @@ Route::middleware('auth:sanctum')->group(function () {
                 'destroy',
             ]);
 
+
+            // PRODUTOS
+
             Route::post('/products', [
                 ProductController::class,
                 'store',
@@ -136,6 +173,34 @@ Route::middleware('auth:sanctum')->group(function () {
                 ProductController::class,
                 'destroy',
             ])->whereNumber('product');
+
+
+            // GERENCIAMENTO DE PEDIDOS
+
+            Route::get('/orders', [
+                AdminOrderController::class,
+                'index',
+            ]);
+
+            Route::get('/orders/{order}', [
+                AdminOrderController::class,
+                'show',
+            ])->whereNumber('order');
+
+            Route::patch('/orders/{order}/status', [
+                AdminOrderController::class,
+                'updateStatus',
+            ])->whereNumber('order');
+
+            Route::post('/orders/{order}/pay', [
+                AdminOrderController::class,
+                'pay',
+            ])->whereNumber('order');
+
+            Route::post('/orders/{order}/cancel', [
+                AdminOrderController::class,
+                'cancel',
+            ])->whereNumber('order');
 
         });
 
