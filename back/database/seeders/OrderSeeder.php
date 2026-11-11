@@ -37,6 +37,24 @@ class OrderSeeder extends Seeder
                     'Baixo Iniciante' => 2,
                 ],
             ],
+            [
+                'email' => 'cliente1@rockerstore.test',
+                'status' => 'enviado',
+                'shipping_cents' => 1500,
+                'items' => [
+                    'Guitarra Telecaster Vintage' => 1,
+                    'Baixo Short Scale' => 1,
+                ],
+            ],
+            [
+                'email' => 'cliente2@rockerstore.test',
+                'status' => 'entregue',
+                'shipping_cents' => 1500,
+                'items' => [
+                    'Guitarra Les Paul Standard' => 1,
+                    'Bateria Acustica Compact' => 1,
+                ],
+            ],
         ];
 
         DB::transaction(function () use ($orders) {
@@ -114,9 +132,11 @@ class OrderSeeder extends Seeder
                     'shipping_cents' => $shipping,
                     'total_cents' => $total,
                     'status' => $data['status'],
-                    'paid_at' => $data['status'] === 'pago'
-                        ? now()
-                        : null,
+                    'paid_at' => in_array(
+                        $data['status'],
+                        ['pago', 'enviado', 'entregue'],
+                        true
+                    ) ? now() : null,
                     'updated_at' => now(),
                 ];
 
