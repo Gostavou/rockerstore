@@ -1,4 +1,6 @@
-const $ = id => document.getElementById(id);
+import './auth.js';
+
+const $ = selector => document.querySelector(selector);
 const checkoutMessage = $('#checkoutMessage');
 const addressSelect = $('#addressSelect');
 const addressForm = $('#addressForm');
@@ -56,7 +58,10 @@ async function apiRequest(path, options = {}) {
         }
 
         const token = getXsrfToken();
-        if (!token) throw new Error('Token CSRF indisponível.');
+
+        if (!token) {
+            throw new Error('Token CSRF indisponível.');
+        }
 
         headers['X-XSRF-TOKEN'] = token;
     }
@@ -78,7 +83,8 @@ async function apiRequest(path, options = {}) {
 
     if (!response.ok) {
         const validation = Object.values(result.errors ?? {})
-            .flat().join(' ');
+            .flat()
+            .join(' ');
 
         const error = new Error(
             validation || result.message || `Erro HTTP ${response.status}`
@@ -186,6 +192,7 @@ function renderOrder(order) {
 async function loadCheckout() {
     try {
         await apiRequest('user');
+
     } catch (error) {
         if (error.status === 401) {
             $('#loginNotice').classList.remove('d-none');
@@ -211,6 +218,7 @@ async function loadCheckout() {
         } catch (error) {
             setMessage(error.message);
         }
+
         return;
     }
 
@@ -263,6 +271,7 @@ async function saveAddress(event) {
 
     } catch (error) {
         setMessage(error.message);
+
     } finally {
         button.disabled = false;
     }
@@ -300,6 +309,7 @@ async function createOrder(event) {
 
     } catch (error) {
         setMessage(error.message);
+
     } finally {
         button.disabled = false;
     }
@@ -307,6 +317,7 @@ async function createOrder(event) {
 
 async function payOrder() {
     const orderId = payButton.dataset.orderId;
+
     if (!orderId) return;
 
     payButton.disabled = true;
@@ -317,10 +328,14 @@ async function payOrder() {
         });
 
         renderOrder(response.data);
-        setMessage('Pagamento simulado realizado com sucesso!', 'success');
+        setMessage(
+            'Pagamento simulado realizado com sucesso!',
+            'success'
+        );
 
     } catch (error) {
         setMessage(error.message);
+
     } finally {
         payButton.disabled = false;
     }

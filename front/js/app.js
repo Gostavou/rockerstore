@@ -1,3 +1,5 @@
+import './header.js';
+
 const productList = document.querySelector('#productList');
 const message = document.querySelector('#message');
 const categorySelect = document.querySelector('#category');
@@ -28,6 +30,48 @@ function setMessage(text, type = 'secondary') {
     message.textContent = text;
 }
 
+function getImageUrl(path) {
+    if (!path || typeof path !== 'string') return null;
+
+    const value = path.trim();
+
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith('//')) return null;
+    if (value.startsWith('/')) return value;
+
+    return `/storage/${value.replace(/^storage\//, '')}`;
+}
+
+function createProductImage(product) {
+    const container = createElement(
+        'div', '', 'product-image'
+    );
+
+    const fallback = () => {
+        container.replaceChildren(
+            createElement('span', '')
+        );
+    };
+
+    const url = getImageUrl(product.image_path);
+
+    if (!url) {
+        fallback();
+        return container;
+    }
+
+    const image = document.createElement('img');
+    image.src = url;
+    image.alt = product.name;
+    image.className = 'w-100 h-100 object-fit-contain p-3';
+    image.loading = 'lazy';
+
+    image.addEventListener('error', fallback);
+    container.appendChild(image);
+
+    return container;
+}
+
 function getXsrfToken() {
     const cookie = document.cookie.split('; ')
         .find(item => item.startsWith('XSRF-TOKEN='));
@@ -52,7 +96,10 @@ async function apiRequest(path, options = {}) {
         }
 
         const token = getXsrfToken();
-        if (!token) throw new Error('Token CSRF indisponível.');
+
+        if (!token) {
+            throw new Error('Token CSRF indisponível.');
+        }
 
         headers['X-XSRF-TOKEN'] = token;
     }
@@ -74,7 +121,8 @@ async function apiRequest(path, options = {}) {
 
     if (!response.ok) {
         const validation = Object.values(result.errors ?? {})
-            .flat().join(' ');
+            .flat()
+            .join(' ');
 
         throw new Error(
             validation || result.message || `Erro HTTP ${response.status}`
@@ -93,8 +141,11 @@ async function loadCategories() {
         );
 
         for (const category of response.data ?? []) {
-            categorySelect.add(new Option(category.name, category.id));
+            categorySelect.add(
+                new Option(category.name, category.id)
+            );
         }
+
     } catch (error) {
         console.error('Erro ao carregar categorias:', error);
         setMessage('Não foi possível carregar as categorias.', 'danger');
@@ -102,23 +153,46 @@ async function loadCategories() {
 }
 
 function createProductCard(product) {
-    const column = createElement('div', '', 'col-sm-6 col-lg-4 col-xl-3');
-    const card = createElement('article', '', 'product-card');
-    const image = createElement('div', '🎸', 'product-image');
-    const content = createElement('div', '', 'product-content');
-
-    image.setAttribute('aria-hidden', 'true');
-
-    const category = createElement(
-        'p', product.category?.name ?? 'Instrumentos', 'product-category'
+    const column = createElement(
+        'div', '', 'col-sm-6 col-lg-4 col-xl-3'
     );
 
-    const name = createElement('h3', product.name, 'product-name');
+    const card = createElement(
+        'article', '', 'product-card position-relative'
+    );
+
+    const image = createProductImage(product);
+    const content = createElement(
+        'div', '', 'product-content'
+    );
+
+    const category = createElement(
+        'p',
+        product.category?.name ?? 'Instrumentos',
+        'product-category'
+    );
+
+    const name = createElement(
+        'h3', '', 'product-name'
+    );
+
+    const productLink = createElement(
+        'a',
+        product.name,
+        'stretched-link text-decoration-none text-white'
+    );
+
+    productLink.href = `/product.html?id=${product.id}`;
+    name.appendChild(productLink);
+
     const price = createElement(
-        'p', money(product.price_cents), 'product-price'
+        'p',
+        money(product.price_cents),
+        'product-price'
     );
 
     const inStock = product.stock_quantity > 0;
+
     const stock = createElement(
         'p',
         inStock ? 'Disponível' : 'Sem estoque',
@@ -126,7 +200,9 @@ function createProductCard(product) {
     );
 
     const button = createElement(
-        'button', 'Adicionar ao carrinho', 'btn btn-danger w-100'
+        'button',
+        'Adicionar ao carrinho',
+        'btn btn-danger w-100 position-relative z-2'
     );
 
     button.type = 'button';
@@ -160,8 +236,13 @@ async function loadProducts() {
     const search = searchInput.value.trim();
     const categoryId = categorySelect.value;
 
-    if (search) params.set('search', search);
-    if (categoryId) params.set('category_id', categoryId);
+    if (search) {
+        params.set('search', search);
+    }
+
+    if (categoryId) {
+        params.set('category_id', categoryId);
+    }
 
     try {
         const response = await apiRequest(`products?${params}`);
@@ -170,7 +251,9 @@ async function loadProducts() {
         lastPage = response.meta?.last_page ?? 1;
 
         for (const product of products) {
-            productList.appendChild(createProductCard(product));
+            productList.appendChild(
+                createProductCard(product)
+            );
         }
 
         if (products.length === 0) {
@@ -181,7 +264,9 @@ async function loadProducts() {
                 `${response.meta?.total ?? products.length} produtos encontrados.`;
         }
 
-        pageInfo.textContent = `Página ${currentPage} de ${lastPage}`;
+        pageInfo.textContent =
+            `Página ${currentPage} de ${lastPage}`;
+
         prevButton.disabled = currentPage <= 1;
         nextButton.disabled = currentPage >= lastPage;
 
@@ -195,7 +280,8 @@ async function loadProducts() {
 
 function updateCartCount(cart) {
     const total = (cart.items ?? []).reduce(
-        (sum, item) => sum + item.quantity, 0
+        (sum, item) => sum + item.quantity,
+        0
     );
 
     cartCount.textContent = total;
@@ -223,6 +309,7 @@ async function loadCart() {
     try {
         const response = await apiRequest('cart');
         updateCartCount(response.data);
+
     } catch (error) {
         console.error('Erro ao carregar carrinho:', error);
     }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AccountController;
 
 // ROTAS PÚBLICAS
 
@@ -68,6 +69,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // ATUALIZAÇÃO DOS DADOS DA CONTA
+
+    Route::put('/user', [
+        AccountController::class,
+        'update',
+    ]);
 
     Route::post('/auth/logout', [
         AuthController::class,

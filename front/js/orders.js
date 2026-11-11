@@ -1,4 +1,6 @@
-const $ = id => document.getElementById(id);
+import './header.js';
+
+const $ = selector => document.querySelector(selector);
 const ordersList = $('#ordersList');
 const ordersMessage = $('#ordersMessage');
 const detailsPanel = $('#detailsPanel');
@@ -75,7 +77,10 @@ async function apiRequest(path, options = {}) {
         }
 
         const token = getXsrfToken();
-        if (!token) throw new Error('Token CSRF indisponível.');
+
+        if (!token) {
+            throw new Error('Token CSRF indisponível.');
+        }
 
         headers['X-XSRF-TOKEN'] = token;
     }
@@ -97,7 +102,8 @@ async function apiRequest(path, options = {}) {
 
     if (!response.ok) {
         const validation = Object.values(result.errors ?? {})
-            .flat().join(' ');
+            .flat()
+            .join(' ');
 
         const error = new Error(
             validation || result.message || `Erro HTTP ${response.status}`
@@ -133,7 +139,11 @@ function renderOrders(orders) {
     }
 
     for (const order of orders) {
-        const card = createElement('article', '', 'order-card mb-3');
+        const card = createElement(
+            'article',
+            '',
+            'order-card mb-3'
+        );
 
         const content = createElement(
             'div',
@@ -144,7 +154,11 @@ function renderOrders(orders) {
         const info = createElement('div');
 
         info.append(
-            createElement('h2', `Pedido #${order.id}`, 'h5 fw-bold'),
+            createElement(
+                'h2',
+                `Pedido #${order.id}`,
+                'h5 fw-bold'
+            ),
             createElement(
                 'p',
                 formatDate(order.created_at),
@@ -153,7 +167,11 @@ function renderOrders(orders) {
             createStatusBadge(order.status)
         );
 
-        const actions = createElement('div', '', 'text-md-end');
+        const actions = createElement(
+            'div',
+            '',
+            'text-md-end'
+        );
 
         const total = createElement(
             'p',
@@ -168,6 +186,7 @@ function renderOrders(orders) {
         );
 
         button.type = 'button';
+
         button.addEventListener('click', () => {
             loadOrderDetails(order.id);
         });
@@ -180,7 +199,9 @@ function renderOrders(orders) {
 }
 
 async function loadOrders() {
-    const response = await apiRequest(`orders?page=${currentPage}`);
+    const response = await apiRequest(
+        `orders?page=${currentPage}`
+    );
 
     renderOrders(response.data ?? []);
 
@@ -212,7 +233,8 @@ function renderDetails(order) {
     currentOrder = order;
     detailsPanel.classList.remove('d-none');
 
-    $('#detailsTitle').textContent = `Pedido #${order.id}`;
+    $('#detailsTitle').textContent =
+        `Pedido #${order.id}`;
 
     const badge = createStatusBadge(order.status);
     const status = $('#detailsStatus');
@@ -248,7 +270,8 @@ function renderDetails(order) {
         );
     }
 
-    const pending = order.status === 'aguardando_pagamento';
+    const pending =
+        order.status === 'aguardando_pagamento';
 
     payButton.classList.toggle('d-none', !pending);
     cancelButton.classList.toggle('d-none', !pending);
@@ -261,8 +284,12 @@ function renderDetails(order) {
 
 async function loadOrderDetails(orderId) {
     try {
-        const response = await apiRequest(`orders/${orderId}`);
+        const response = await apiRequest(
+            `orders/${orderId}`
+        );
+
         renderDetails(response.data);
+
     } catch (error) {
         setMessage(error.message);
     }
@@ -291,9 +318,12 @@ async function changeOrder(action) {
     try {
         const orderId = currentOrder.id;
 
-        await apiRequest(`orders/${orderId}/${action}`, {
-            method: 'POST'
-        });
+        await apiRequest(
+            `orders/${orderId}/${action}`,
+            {
+                method: 'POST'
+            }
+        );
 
         await loadOrders();
         await loadOrderDetails(orderId);
@@ -321,6 +351,7 @@ async function changePage(direction) {
 
     try {
         await loadOrders();
+
     } catch (error) {
         currentPage = previousPage;
         setMessage(error.message);
@@ -330,6 +361,7 @@ async function changePage(direction) {
 async function initializeOrders() {
     try {
         await apiRequest('user');
+
     } catch (error) {
         if (error.status === 401) {
             $('#loginNotice').classList.remove('d-none');
@@ -343,6 +375,7 @@ async function initializeOrders() {
 
     try {
         await loadOrders();
+
     } catch (error) {
         setMessage(error.message);
     }
@@ -350,11 +383,15 @@ async function initializeOrders() {
 
 function bindEvents() {
     prevButton.addEventListener('click', () => {
-        if (currentPage > 1) changePage(-1);
+        if (currentPage > 1) {
+            changePage(-1);
+        }
     });
 
     nextButton.addEventListener('click', () => {
-        if (currentPage < lastPage) changePage(1);
+        if (currentPage < lastPage) {
+            changePage(1);
+        }
     });
 
     payButton.addEventListener('click', () => {

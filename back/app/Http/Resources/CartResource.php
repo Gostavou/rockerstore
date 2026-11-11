@@ -11,7 +11,6 @@ class CartResource extends JsonResource
     {
         $items = $this->items->map(function ($item) {
             $product = $item->product;
-
             $unitPrice = $product?->price_cents ?? 0;
 
             return [
@@ -22,6 +21,7 @@ class CartResource extends JsonResource
                     'price_cents' => $product->price_cents,
                     'stock_quantity' => $product->stock_quantity,
                     'is_active' => $product->is_active,
+                    'image_path' => $product->image_path,
                 ] : null,
                 'quantity' => $item->quantity,
                 'line_total_cents' => $unitPrice * $item->quantity,
@@ -31,9 +31,7 @@ class CartResource extends JsonResource
         return [
             'id' => $this->id,
             'items' => $items,
-            'subtotal_cents' => $items->sum(
-                'line_total_cents'
-            ),
+            'subtotal_cents' => $items->sum('line_total_cents'),
         ];
     }
 }

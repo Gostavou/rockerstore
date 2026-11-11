@@ -1,3 +1,4 @@
+import '../js/auth.js';
 
 const statusElement = document.querySelector('#admin-status');
 const dashboard = document.querySelector('#admin-dashboard');

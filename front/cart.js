@@ -1,3 +1,4 @@
+import './js/header.js';
 
 const cartItems = document.querySelector('#cartItems');
 const cartMessage = document.querySelector('#cartMessage');
@@ -26,6 +27,49 @@ function setMessage(text, type = 'danger') {
     cartMessage.textContent = text;
 }
 
+function getImageUrl(path) {
+    if (!path || typeof path !== 'string') return null;
+
+    const value = path.trim();
+
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith('//')) return null;
+    if (value.startsWith('/')) return value;
+
+    return `/storage/${value.replace(/^storage\//, '')}`;
+}
+
+function createProductImage(product) {
+    const container = createElement(
+        'div', '', 'cart-image'
+    );
+
+    const fallback = () => {
+        container.replaceChildren(
+            createElement('span', '')
+        );
+    };
+
+    const url = getImageUrl(product?.image_path);
+
+    if (!url) {
+        fallback();
+        return container;
+    }
+
+    const image = document.createElement('img');
+    image.src = url;
+    image.alt = product.name;
+    image.className = 'w-100 object-fit-contain';
+    image.style.height = '130px';
+    image.loading = 'lazy';
+
+    image.addEventListener('error', fallback);
+    container.appendChild(image);
+
+    return container;
+}
+
 function getXsrfToken() {
     const cookie = document.cookie.split('; ')
         .find(item => item.startsWith('XSRF-TOKEN='));
@@ -50,7 +94,10 @@ async function apiRequest(path, options = {}) {
         }
 
         const token = getXsrfToken();
-        if (!token) throw new Error('Token CSRF indisponível.');
+
+        if (!token) {
+            throw new Error('Token CSRF indisponível.');
+        }
 
         headers['X-XSRF-TOKEN'] = token;
     }
@@ -72,7 +119,8 @@ async function apiRequest(path, options = {}) {
 
     if (!response.ok) {
         const errors = Object.values(result.errors ?? {})
-            .flat().join(' ');
+            .flat()
+            .join(' ');
 
         const error = new Error(
             errors || result.message || `Erro HTTP ${response.status}`
@@ -150,19 +198,35 @@ function createCartItem(item) {
     const name = product?.name ?? 'Produto indisponível';
     const price = product?.price_cents ?? 0;
     const stock = product?.stock_quantity ?? 0;
-    const available = Boolean(product && product.is_active && stock > 0);
 
-    const card = createElement('article', '', 'cart-item mb-3');
-    const row = createElement('div', '', 'row g-3 align-items-center');
+    const available = Boolean(
+        product && product.is_active && stock > 0
+    );
 
-    const imageColumn = createElement('div', '', 'col-sm-3');
-    const image = createElement('div', '🎸', 'cart-image');
-    image.setAttribute('aria-hidden', 'true');
-    imageColumn.appendChild(image);
+    const card = createElement(
+        'article', '', 'cart-item mb-3'
+    );
 
-    const infoColumn = createElement('div', '', 'col-sm-6');
+    const row = createElement(
+        'div', '', 'row g-3 align-items-center'
+    );
 
-    const title = createElement('h2', name, 'h5 fw-bold');
+    const imageColumn = createElement(
+        'div', '', 'col-sm-3'
+    );
+
+    imageColumn.appendChild(
+        createProductImage(product)
+    );
+
+    const infoColumn = createElement(
+        'div', '', 'col-sm-6'
+    );
+
+    const title = createElement(
+        'h2', name, 'h5 fw-bold'
+    );
+
     const unitPrice = createElement(
         'p',
         `Preço unitário: ${money(price)}`,
@@ -171,7 +235,9 @@ function createCartItem(item) {
 
     const stockInfo = createElement(
         'p',
-        available ? `Estoque disponível: ${stock}` : 'Produto indisponível',
+        available
+            ? `Estoque disponível: ${stock}`
+            : 'Produto indisponível',
         'small text-secondary mb-2'
     );
 
@@ -194,21 +260,29 @@ function createCartItem(item) {
     quantityLabel.htmlFor = quantityInput.id;
 
     const saveButton = createElement(
-        'button', 'Atualizar', 'btn btn-outline-light btn-sm'
+        'button',
+        'Atualizar',
+        'btn btn-outline-light btn-sm'
     );
 
     saveButton.type = 'button';
     saveButton.disabled = !available;
 
     saveButton.addEventListener('click', () => {
-        updateQuantity(item.id, Number(quantityInput.value), stock);
+        updateQuantity(
+            item.id,
+            Number(quantityInput.value),
+            stock
+        );
     });
 
     const quantityGroup = document.createElement('div');
     quantityGroup.append(quantityLabel, quantityInput);
 
     const quantityControls = createElement(
-        'div', '', 'd-flex align-items-end gap-2 flex-wrap'
+        'div',
+        '',
+        'd-flex align-items-end gap-2 flex-wrap'
     );
 
     quantityControls.append(quantityGroup, saveButton);
@@ -219,15 +293,22 @@ function createCartItem(item) {
     );
 
     const lineTotal = createElement(
-        'p', money(item.line_total_cents), 'cart-item-total'
+        'p',
+        money(item.line_total_cents),
+        'cart-item-total'
     );
 
     const removeButton = createElement(
-        'button', 'Remover', 'btn btn-outline-danger btn-sm'
+        'button',
+        'Remover',
+        'btn btn-outline-danger btn-sm'
     );
 
     removeButton.type = 'button';
-    removeButton.addEventListener('click', () => removeItem(item.id));
+
+    removeButton.addEventListener('click', () => {
+        removeItem(item.id);
+    });
 
     actionColumn.append(lineTotal, removeButton);
     row.append(imageColumn, infoColumn, actionColumn);
@@ -241,18 +322,24 @@ function renderCart(cart) {
 
     const items = cart.items ?? [];
     const totalQuantity = items.reduce(
-        (total, item) => total + item.quantity, 0
+        (total, item) => total + item.quantity,
+        0
     );
 
     cartCount.textContent = totalQuantity;
     cartUnits.textContent = totalQuantity;
     cartSubtotal.textContent = money(cart.subtotal_cents);
 
-    checkoutLink.classList.toggle('disabled', items.length === 0);
+    checkoutLink.classList.toggle(
+        'disabled',
+        items.length === 0
+    );
+
     checkoutLink.setAttribute(
         'aria-disabled',
         String(items.length === 0)
     );
+
     checkoutLink.tabIndex = items.length === 0 ? -1 : 0;
 
     if (items.length === 0) {
@@ -269,13 +356,20 @@ function renderCart(cart) {
         );
 
         link.href = '/#catalogo';
-        empty.append(document.createElement('br'), link);
+
+        empty.append(
+            document.createElement('br'),
+            link
+        );
+
         cartItems.appendChild(empty);
         return;
     }
 
     for (const item of items) {
-        cartItems.appendChild(createCartItem(item));
+        cartItems.appendChild(
+            createCartItem(item)
+        );
     }
 }
 
@@ -284,6 +378,7 @@ async function loadCart() {
         const response = await apiRequest('cart');
         currentCart = response.data;
         renderCart(currentCart);
+
     } catch (error) {
         setMessage(error.message);
     }

@@ -1,82 +1,181 @@
 
+/* ========================================
+   ROCKERSTORE — PAINEL ADMINISTRATIVO
+   Paleta: branco, preto e vermelho
+======================================== */
+
+/* 1. VISIBILIDADE */
+
 [hidden] {
     display: none !important;
 }
 
-.admin-status {
-    padding: 14px 18px;
+/* 2. MENSAGENS E NOTIFICAÇÕES */
+
+.admin-status,
+.admin-success,
+.admin-error {
+    padding: 15px 20px;
     margin-bottom: 24px;
     border-radius: 8px;
-    background: #26282f;
-    color: #e5e5e5;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.admin-status {
+    background: #f0ede8;
+    border-left: 4px solid #8c8580;
+    color: #393632;
 }
 
 .admin-success {
-    padding: 14px 18px;
-    margin-bottom: 24px;
-    border-radius: 8px;
-    background: #193b2b;
-    color: #a8f0c4;
+    background: #e9f5ed;
+    border-left: 4px solid #27834b;
+    color: #23613a;
 }
 
 .admin-error {
-    padding: 14px 18px;
-    margin-bottom: 24px;
-    border-radius: 8px;
-    background: #4a2025;
-    color: #ffbec3;
+    background: #fcebed;
+    border-left: 4px solid var(--rock-red);
+    color: #9e2530;
 }
+
+/* 3. NAVEGAÇÃO DO PAINEL */
 
 .admin-navigation {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--rock-border);
 }
 
 .admin-tab {
-    padding: 10px 22px;
+    padding: 11px 22px;
+    background: #ffffff;
     border: 1px solid var(--rock-border);
-    border-radius: 8px;
-    background: #24262c;
-    color: white;
+    border-radius: 7px;
+    color: var(--rock-black);
+    font-size: 0.88rem;
+    font-weight: 700;
     cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
 }
 
-.admin-tab.active,
 .admin-tab:hover {
+    background: #f0ede8;
+    border-color: #c9c2ba;
+    color: var(--rock-black);
+}
+
+.admin-tab.active {
     background: var(--rock-red);
     border-color: var(--rock-red);
+    color: #ffffff;
 }
 
+.admin-tab.active:hover {
+    background: var(--rock-red-hover);
+    border-color: var(--rock-red-hover);
+    color: #ffffff;
+}
+
+.admin-tab:focus-visible {
+    outline: 2px solid var(--rock-red);
+    outline-offset: 3px;
+}
+
+/* 4. CARDS ADMINISTRATIVOS */
+
 .admin-card {
-    padding: 26px;
-    background: var(--rock-gray);
+    padding: 28px;
+    background: #ffffff;
     border: 1px solid var(--rock-border);
-    border-radius: 12px;
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(23, 23, 23, 0.055);
+}
+
+.admin-card h2,
+.admin-card h3 {
+    color: var(--rock-black);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.admin-card p {
+    line-height: 1.6;
+}
+
+/* 5. FORMULÁRIOS */
+
+.admin-card .form-label {
+    color: var(--rock-black);
+    font-size: 0.85rem;
+    font-weight: 700;
 }
 
 .admin-card .form-control,
 .admin-card .form-select {
-    background: #24262c;
-    color: white;
-    border-color: #444650;
+    min-height: 44px;
+    background: #ffffff;
+    color: var(--rock-black);
+    border: 1px solid #d2cdc6;
+    border-radius: 6px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-card .form-control::placeholder {
+    color: #938d86;
 }
 
 .admin-card .form-control:focus,
 .admin-card .form-select:focus {
-    background: #292b32;
-    color: white;
+    background: #ffffff;
+    color: var(--rock-black);
     border-color: var(--rock-red);
-    box-shadow: none;
+    box-shadow: 0 0 0 3px rgba(197, 43, 53, 0.10);
 }
+
+.admin-card .form-control:disabled,
+.admin-card .form-select:disabled {
+    background: #f0ede8;
+    color: #716d68;
+}
+
+.admin-card textarea.form-control {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.admin-card .form-check-input:checked {
+    background-color: var(--rock-red);
+    border-color: var(--rock-red);
+}
+
+.admin-card .form-check-input:focus {
+    border-color: var(--rock-red);
+    box-shadow: 0 0 0 3px rgba(197, 43, 53, 0.10);
+}
+
+/* 6. LISTAGENS */
 
 .admin-list-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 16px;
-    padding: 16px 0;
+    padding: 18px 0;
     border-bottom: 1px solid var(--rock-border);
+    transition: background-color 0.2s ease;
 }
 
 .admin-list-row:last-child {
@@ -88,44 +187,169 @@
     overflow-wrap: anywhere;
 }
 
+.admin-list-row strong {
+    color: var(--rock-black);
+    font-weight: 750;
+}
+
+.admin-list-row .text-secondary {
+    color: var(--rock-muted) !important;
+}
+
+/* 7. CABEÇALHOS DAS SEÇÕES */
+
 .admin-heading {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 24px;
 }
 
+.admin-heading h2 {
+    margin-bottom: 0;
+    font-weight: 850;
+    letter-spacing: -0.04em;
+}
+
+/* 8. PAGINAÇÃO */
+
 .admin-pagination {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     gap: 16px;
+    margin-top: 24px;
 }
+
+.admin-pagination span {
+    color: var(--rock-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* 9. DETALHES DOS PEDIDOS */
 
 .admin-detail-row {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 20px;
-    padding: 12px 0;
+    padding: 14px 0;
     border-bottom: 1px solid var(--rock-border);
 }
 
+.admin-detail-row:last-child {
+    border-bottom: none;
+}
+
 .admin-detail-row strong {
+    color: var(--rock-black);
+    font-weight: 750;
     text-align: right;
     overflow-wrap: anywhere;
 }
 
 .admin-detail-title {
-    margin-top: 24px;
-    margin-bottom: 12px;
+    margin-top: 26px;
+    margin-bottom: 14px;
+    padding-left: 12px;
+    border-left: 3px solid var(--rock-red);
+    color: var(--rock-black);
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: -0.02em;
 }
 
-#admin-order-details {
-    scroll-margin-top: 100px;
+#admin-order-details,
+#adminOrderDetails {
+    scroll-margin-top: 110px;
+}
+
+#adminOrderItems li {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rock-border);
+}
+
+/* 10. TABELAS */
+
+.admin-card .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--rock-black);
+    --bs-table-border-color: var(--rock-border);
+    --bs-table-hover-bg: #f1eeea;
+    --bs-table-hover-color: var(--rock-black);
+}
+
+.admin-card .table thead th {
+    padding: 14px 12px;
+    color: var(--rock-black);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.admin-card .table tbody td {
+    padding: 15px 12px;
+    vertical-align: middle;
+}
+
+/* 11. BOTÕES */
+
+.admin-card .btn {
+    font-weight: 650;
+    border-radius: 6px;
+}
+
+.admin-card .btn-danger {
+    background: var(--rock-red);
+    border-color: var(--rock-red);
+    color: #ffffff;
+}
+
+.admin-card .btn-danger:hover {
+    background: var(--rock-red-hover);
+    border-color: var(--rock-red-hover);
+}
+
+.admin-card .btn-outline-light {
+    background: transparent;
+    border-color: var(--rock-black);
+    color: var(--rock-black);
+}
+
+.admin-card .btn-outline-light:hover {
+    background: var(--rock-black);
+    border-color: var(--rock-black);
+    color: #ffffff;
+}
+
+.admin-card .btn-outline-danger {
+    border-color: var(--rock-red);
+    color: var(--rock-red);
+}
+
+.admin-card .btn-outline-danger:hover {
+    background: var(--rock-red);
+    color: #ffffff;
+}
+
+/* 12. RESPONSIVIDADE */
+
+@media (max-width: 768px) {
+    .admin-card {
+        padding: 22px;
+    }
+
+    .admin-navigation {
+        gap: 8px;
+    }
+
+    .admin-tab {
+        padding: 10px 16px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -145,5 +369,16 @@
 
     .admin-pagination {
         gap: 10px;
+    }
+
+    .admin-tab {
+        flex: 1;
+        text-align: center;
+        padding: 11px 12px;
+    }
+
+    .admin-heading {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
