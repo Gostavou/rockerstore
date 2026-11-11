@@ -38,7 +38,6 @@ class CategoryService
         $category->name = $name;
         $category->slug = $slug;
         $category->save();
-
         return $category;
     }
 
@@ -69,9 +68,7 @@ class CategoryService
 
         $category->name = $name;
         $category->slug = $slug;
-
         $category->save();
-
         return $category;
     }
 

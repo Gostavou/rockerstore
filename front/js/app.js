@@ -341,8 +341,8 @@ function bindEvents() {
     });
 
     sortSelect.addEventListener('change', () => {
-    currentPage = 1;
-    loadProducts();
+        currentPage = 1;
+        loadProducts();
     });
 }
 

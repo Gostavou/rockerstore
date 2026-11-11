@@ -45,9 +45,9 @@ class ListProductsRequest extends FormRequest
                 'min:1',
             ],
             'sort' => [
-            'sometimes',
-            'string',
-            'in:name,price_asc,price_desc,recent',
+                'sometimes',
+                'string',
+                'in:name,price_asc,price_desc,recent',
             ],
         ];
 
