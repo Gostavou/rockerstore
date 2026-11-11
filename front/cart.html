@@ -1,214 +1,97 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-bs-theme="light">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrinho | RockerStore</title>
-
-    <link rel="stylesheet"
-          href="/vendor/bootstrap/bootstrap.min.css">
-
-    <link rel="stylesheet"
-          href="/css/style.css">
-
-    <script src="/vendor/bootstrap/bootstrap.bundle.min.js"
-            defer></script>
-
+    <link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
     <script type="module" src="/js/auth.js"></script>
     <script type="module" src="/cart.js"></script>
 </head>
-
 <body>
-
     <header class="site-header sticky-top">
-
         <nav class="navbar navbar-expand-lg container py-3">
+            <a class="navbar-brand logo" href="/">ROCKER<span>STORE</span></a>
 
-            <a class="navbar-brand logo" href="/">
-                ROCKER<span>STORE</span>
-            </a>
-
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarMenu"
-                    aria-controls="navbarMenu"
-                    aria-expanded="false"
-                    aria-label="Abrir menu">
-
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarMenu" aria-controls="navbarMenu"
+                    aria-expanded="false" aria-label="Abrir menu">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse"
-                 id="navbarMenu">
-
-                <div class="navbar-nav ms-auto gap-lg-3
-                            align-items-lg-center">
-
-                    <a class="nav-link" href="/">
-                        Início
+            <div class="collapse navbar-collapse" id="navbarMenu">
+                <div class="navbar-nav ms-auto gap-lg-3 align-items-lg-center">
+                    <a class="nav-link" href="/">Início</a>
+                    <a class="nav-link" href="/#catalogo">Produtos</a>
+                    <a class="nav-link active" aria-current="page" href="/cart.html">
+                        Carrinho: <strong id="cartCount">0</strong>
                     </a>
-
-                    <a class="nav-link" href="/#catalogo">
-                        Produtos
-                    </a>
-
-                    <a class="nav-link active"
-                       aria-current="page"
-                       href="/cart.html">
-
-                        Carrinho:
-                        <strong id="cartCount">0</strong>
-                    </a>
-
-                    <a class="nav-link" href="/orders.html">
-                        Meus pedidos
-                    </a>
-
-                    <a id="loginLink"
-                       class="nav-link"
-                       href="/login.html">
-                        Entrar
-                    </a>
-
-                    <a id="registerLink"
-                       class="nav-link"
-                       href="/register.html">
-                        Criar conta
-                    </a>
-
-                    <span id="userWelcome"
-                          class="nav-link d-none">
-                    </span>
-
-                    <button id="logoutButton"
-                            type="button"
-                            class="btn btn-outline-light btn-sm d-none">
-                        Sair
-                    </button>
-
+                    <a class="nav-link" href="/orders.html">Meus pedidos</a>
+                    <a id="loginLink" class="nav-link" href="/login.html">Entrar</a>
+                    <a id="registerLink" class="nav-link" href="/register.html">Criar conta</a>
+                    <span id="userWelcome" class="nav-link d-none"></span>
+                    <button id="logoutButton" type="button"
+                            class="btn btn-outline-light btn-sm d-none">Sair</button>
                 </div>
             </div>
-
         </nav>
     </header>
 
     <main class="container py-5">
-
         <div class="mb-4">
-
-            <p class="hero-label">
-                SUA SELEÇÃO
-            </p>
-
-            <h1 class="fw-bold">
-                Meu carrinho
-            </h1>
-
+            <p class="hero-label">SUA SELEÇÃO</p>
+            <h1 class="fw-bold">Meu carrinho</h1>
             <p class="text-secondary">
-                Confira os instrumentos antes de finalizar
-                sua compra.
+                Confira os instrumentos antes de finalizar sua compra.
             </p>
-
         </div>
 
-        <div id="cartMessage"
-             role="status"
-             aria-live="polite"
-             class="mb-3">
-        </div>
+        <div id="cartMessage" role="status" aria-live="polite" class="mb-3"></div>
 
         <div class="row g-4">
-
-            <section class="col-lg-8"
-                     aria-label="Produtos no carrinho">
-
+            <section class="col-lg-8" aria-label="Produtos no carrinho">
                 <div id="cartItems">
-
-                    <p class="text-secondary">
-                        Carregando carrinho...
-                    </p>
-
+                    <p class="text-secondary">Carregando carrinho...</p>
                 </div>
-
             </section>
 
             <aside class="col-lg-4">
-
                 <div class="cart-summary">
-
-                    <h2 class="h4 fw-bold mb-4">
-                        Resumo da compra
-                    </h2>
+                    <h2 class="h4 fw-bold mb-4">Resumo da compra</h2>
 
                     <div class="d-flex justify-content-between mb-3">
-
-                        <span class="text-secondary">
-                            Quantidade de itens
-                        </span>
-
+                        <span class="text-secondary">Quantidade de itens</span>
                         <strong id="cartUnits">0</strong>
-
                     </div>
 
                     <hr>
 
-                    <div class="d-flex justify-content-between
-                                align-items-center mb-4">
-
-                        <span class="fw-bold">
-                            Subtotal
-                        </span>
-
-                        <strong id="cartSubtotal"
-                                class="cart-total">
-                            R$ 0,00
-                        </strong>
-
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold">Subtotal</span>
+                        <strong id="cartSubtotal" class="cart-total">R$ 0,00</strong>
                     </div>
 
                     <p class="text-secondary small">
-                        O pedido será confirmado na próxima
-                        etapa de checkout.
+                        O pedido será confirmado na próxima etapa de checkout.
                     </p>
 
-                    <a id="checkoutLink"
-                       href="/checkout.html"
-                       class="btn btn-danger w-100 mb-3">
-                        Finalizar compra
-                    </a>
-
-                    <a href="/#catalogo"
-                       class="btn btn-outline-light w-100">
+                    <a id="checkoutLink" href="/checkout.html"
+                       class="btn btn-danger w-100 mb-3">Finalizar compra</a>
+                    <a href="/#catalogo" class="btn btn-outline-light w-100">
                         Continuar comprando
                     </a>
-
                 </div>
-
             </aside>
-
         </div>
-
     </main>
 
     <footer class="footer py-4 mt-5">
-
         <div class="container text-center">
-
-            <p class="mb-1 fw-bold">
-                ROCKERSTORE
-            </p>
-
-            <small class="text-secondary">
-                E-commerce de instrumentos musicais.
-            </small>
-
+            <p class="mb-1 fw-bold">ROCKERSTORE</p>
+            <small class="text-secondary">E-commerce de instrumentos musicais.</small>
         </div>
-
     </footer>
-
 </body>
 </html>

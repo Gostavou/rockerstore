@@ -1,233 +1,105 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-bs-theme="light">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhes do produto | RockerStore</title>
-
-    <link rel="stylesheet"
-          href="/vendor/bootstrap/bootstrap.min.css">
-
-    <link rel="stylesheet"
-          href="/css/style.css">
-
-    <script src="/vendor/bootstrap/bootstrap.bundle.min.js"
-            defer></script>
-
+    <link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
     <script type="module" src="/js/auth.js"></script>
     <script type="module" src="/js/product.js"></script>
 </head>
-
 <body>
-
     <header class="site-header sticky-top">
-
         <nav class="navbar navbar-expand-lg container py-3">
+            <a class="navbar-brand logo" href="/">ROCKER<span>STORE</span></a>
 
-            <a class="navbar-brand logo" href="/">
-                ROCKER<span>STORE</span>
-            </a>
-
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarMenu"
-                    aria-controls="navbarMenu"
-                    aria-expanded="false"
-                    aria-label="Abrir menu">
-
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarMenu" aria-controls="navbarMenu"
+                    aria-expanded="false" aria-label="Abrir menu">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse"
-                 id="navbarMenu">
-
-                <div class="navbar-nav ms-auto gap-lg-3
-                            align-items-lg-center">
-
-                    <a class="nav-link" href="/">
-                        Início
-                    </a>
-
-                    <a class="nav-link" href="/#catalogo">
-                        Produtos
-                    </a>
-
+            <div class="collapse navbar-collapse" id="navbarMenu">
+                <div class="navbar-nav ms-auto gap-lg-3 align-items-lg-center">
+                    <a class="nav-link" href="/">Início</a>
+                    <a class="nav-link" href="/#catalogo">Produtos</a>
                     <a class="nav-link" href="/cart.html">
-                        Carrinho:
-                        <strong id="cartCount">0</strong>
+                        Carrinho: <strong id="cartCount">0</strong>
                     </a>
-
-                    <a class="nav-link" href="/orders.html">
-                        Meus pedidos
-                    </a>
-
-                    <a id="adminLink"
-                       class="nav-link d-none"
-                       href="/admin/">
-                        Administração
-                    </a>
-
-                    <a id="loginLink"
-                       class="nav-link"
-                       href="/login.html">
-                        Entrar
-                    </a>
-
-                    <a id="registerLink"
-                       class="nav-link"
-                       href="/register.html">
-                        Criar conta
-                    </a>
-
-                    <span id="userWelcome"
-                          class="nav-link d-none"></span>
-
-                    <button id="logoutButton"
-                            type="button"
-                            class="btn btn-outline-light btn-sm d-none">
-                        Sair
-                    </button>
-
+                    <a class="nav-link" href="/orders.html">Meus pedidos</a>
+                    <a id="adminLink" class="nav-link d-none" href="/admin/">Administração</a>
+                    <a id="loginLink" class="nav-link" href="/login.html">Entrar</a>
+                    <a id="registerLink" class="nav-link" href="/register.html">Criar conta</a>
+                    <span id="userWelcome" class="nav-link d-none"></span>
+                    <button id="logoutButton" type="button"
+                            class="btn btn-outline-light btn-sm d-none">Sair</button>
                 </div>
-
             </div>
-
         </nav>
-
     </header>
 
     <main class="container py-5">
-
         <div class="mb-4">
-
-            <a href="/#catalogo"
-               class="btn btn-outline-light btn-sm mb-4">
+            <a href="/#catalogo" class="btn btn-outline-light btn-sm mb-4">
                 Voltar ao catálogo
             </a>
-
-            <p class="hero-label mb-2">
-                ROCKERSTORE
-            </p>
-
-            <h1 class="fw-bold">
-                Detalhes do produto
-            </h1>
-
+            <p class="hero-label mb-2">ROCKERSTORE</p>
+            <h1 class="fw-bold">Detalhes do produto</h1>
         </div>
 
-        <div id="productMessage"
-             class="d-none"
-             role="status"
-             aria-live="polite"></div>
+        <div id="productMessage" class="d-none" role="status" aria-live="polite"></div>
+        <p id="productLoading" class="text-secondary">Carregando produto...</p>
 
-        <p id="productLoading"
-           class="text-secondary">
-            Carregando produto...
-        </p>
-
-        <section id="productPanel"
-                 class="d-none"
-                 aria-label="Informações do produto">
-
+        <section id="productPanel" class="d-none" aria-label="Informações do produto">
             <div class="row g-4 align-items-stretch">
-
                 <div class="col-lg-6">
-
                     <div class="ratio ratio-4x3">
-
-                        <div id="productVisual"
-                             class="product-image h-100 rounded-3"
-                             aria-label="Imagem do produto">
-                        </div>
-
+                        <div id="productVisual" class="product-image h-100 rounded-3"
+                             aria-label="Imagem do produto"></div>
                     </div>
-
                 </div>
 
                 <div class="col-lg-6">
-
                     <div class="checkout-card h-100">
-
-                        <p id="productCategory"
-                           class="product-category mb-2"></p>
-
-                        <h2 id="productName"
-                            class="fw-bold mb-3"></h2>
-
-                        <p id="productPrice"
-                           class="product-price mb-3"></p>
-
-                        <p id="productStock"
-                           class="product-stock mb-4"></p>
+                        <p id="productCategory" class="product-category mb-2"></p>
+                        <h2 id="productName" class="fw-bold mb-3"></h2>
+                        <p id="productPrice" class="product-price mb-3"></p>
+                        <p id="productStock" class="product-stock mb-4"></p>
 
                         <hr>
 
-                        <h3 class="h5 fw-bold mt-4">
-                            Sobre este instrumento
-                        </h3>
-
-                        <p id="productDescription"
-                           class="text-secondary mb-4"></p>
+                        <h3 class="h5 fw-bold mt-4">Sobre este instrumento</h3>
+                        <p id="productDescription" class="text-secondary mb-4"></p>
 
                         <form id="addCartForm">
+                            <label for="productQuantity" class="form-label">Quantidade</label>
+                            <input id="productQuantity" type="number"
+                                   class="form-control mb-3" min="1"
+                                   step="1" value="1" required>
 
-                            <label for="productQuantity"
-                                   class="form-label">
-                                Quantidade
-                            </label>
-
-                            <input id="productQuantity"
-                                   type="number"
-                                   class="form-control mb-3"
-                                   min="1"
-                                   step="1"
-                                   value="1"
-                                   required>
-
-                            <button id="addToCartButton"
-                                    type="submit"
-                                    class="btn btn-danger w-100"
-                                    disabled>
+                            <button id="addToCartButton" type="submit"
+                                    class="btn btn-danger w-100" disabled>
                                 Adicionar ao carrinho
                             </button>
-
                         </form>
 
-                        <a id="viewCartLink"
-                           href="/cart.html"
+                        <a id="viewCartLink" href="/cart.html"
                            class="btn btn-outline-light w-100 mt-3 d-none">
                             Ver carrinho
                         </a>
-
                     </div>
-
                 </div>
-
             </div>
-
         </section>
-
     </main>
 
     <footer class="footer py-4 mt-5">
-
         <div class="container text-center">
-
-            <p class="mb-1 fw-bold">
-                ROCKERSTORE
-            </p>
-
-            <small class="text-secondary">
-                E-commerce de instrumentos musicais.
-            </small>
-
+            <p class="mb-1 fw-bold">ROCKERSTORE</p>
+            <small class="text-secondary">E-commerce de instrumentos musicais.</small>
         </div>
-
     </footer>
-
 </body>
 </html>
