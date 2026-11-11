@@ -11,7 +11,6 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // Busca as categorias pelo slug.
         $categories = Category::query()
             ->whereIn('slug', [
                 'guitarras',
@@ -20,7 +19,6 @@ class ProductSeeder extends Seeder
             ])
             ->pluck('id', 'slug');
 
-        // Garante que as categorias foram criadas.
         foreach (['guitarras', 'baixos', 'baterias'] as $slug) {
             if (!isset($categories[$slug])) {
                 throw new RuntimeException(
@@ -29,8 +27,6 @@ class ProductSeeder extends Seeder
             }
         }
 
-        // Dados fictícios para desenvolvimento e testes.
-        // Preços armazenados em centavos.
 
         $products = [
 
@@ -261,7 +257,6 @@ class ProductSeeder extends Seeder
             ],
         ];
 
-        // Percorre os produtos e salva no banco.
         foreach ($products as $productData) {
             $categorySlug = $productData['category'];
 

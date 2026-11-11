@@ -176,10 +176,6 @@ function changeTab(name) {
     }
 }
 
-// ======================================================
-// CATEGORIAS
-// ======================================================
-
 function resetCategoryForm() {
     editingCategoryId = null;
     categoryForm.reset();
@@ -316,11 +312,7 @@ async function deleteCategory(id) {
     });
 }
 
-// ======================================================
-// IMAGENS DOS PRODUTOS
-// ======================================================
 
-// Converte o caminho salvo no banco em uma URL.
 function getProductImageUrl(path) {
     if (!path || typeof path !== 'string') {
         return null;
@@ -343,7 +335,6 @@ function getProductImageUrl(path) {
     return `/storage/${value.replace(/^storage\//, '')}`;
 }
 
-// Libera a URL temporária criada para a prévia.
 function clearPreviewObjectUrl() {
     if (previewObjectUrl !== null) {
         URL.revokeObjectURL(previewObjectUrl);
@@ -351,7 +342,6 @@ function clearPreviewObjectUrl() {
     }
 }
 
-// Exibe ou oculta a prévia.
 function showImagePreview(url) {
     if (!url) {
         imagePreviewImg.removeAttribute('src');
@@ -363,9 +353,6 @@ function showImagePreview(url) {
     imagePreview.hidden = false;
 }
 
-// ======================================================
-// PRODUTOS
-// ======================================================
 
 function resetProductForm() {
     editingProductId = null;
@@ -404,7 +391,6 @@ function editProduct(product) {
     document.querySelector('#product-stock').value =
         product.stock_quantity;
 
-    // Limpa o seletor, mas mantém a imagem salva.
     imageInput.value = '';
 
     currentImagePath = product.image_path ?? null;
@@ -412,7 +398,6 @@ function editProduct(product) {
 
     clearPreviewObjectUrl();
 
-    // Exibe a imagem atual na prévia.
     showImagePreview(
         getProductImageUrl(currentImagePath)
     );
@@ -544,7 +529,6 @@ async function saveProduct(event) {
             throw new Error('Dados do produto inválidos.');
         }
 
-        // FormData permite enviar campos e arquivos.
         const data = new FormData();
 
         data.append(
@@ -580,7 +564,6 @@ async function saveProduct(event) {
                 : '0'
         );
 
-        // Obtém o arquivo selecionado.
         const imageFile = imageInput.files[0];
 
         if (imageFile) {
@@ -596,11 +579,8 @@ async function saveProduct(event) {
         const editing = editingProductId !== null;
 
         if (editing) {
-            // Laravel interpreta o POST como PUT.
             data.append('_method', 'PUT');
 
-            // Informa ao backend que a imagem salva
-            // deve ser removida quando clicar em Salvar.
             if (removeCurrentImage && !imageFile) {
                 data.append('remove_image', '1');
             }
@@ -647,10 +627,6 @@ async function deleteProduct(id) {
     });
 }
 
-// ======================================================
-// ENDEREÇO DO PEDIDO
-// ======================================================
-
 function formatAddress(address) {
     if (!address || typeof address !== 'object') {
         return 'Endereço indisponível';
@@ -669,10 +645,6 @@ function formatAddress(address) {
         address.zip_code
     ].filter(Boolean).join(' — ');
 }
-
-// ======================================================
-// PEDIDOS
-// ======================================================
 
 function renderOrders(orders) {
     ordersBody.replaceChildren();
@@ -946,12 +918,8 @@ async function changeOrder(id, action, status = null) {
     });
 }
 
-// ======================================================
-// EVENTOS
-// ======================================================
 
 function bindEvents() {
-    // Navegação entre abas.
     for (const tab of document.querySelectorAll('[data-tab]')) {
         tab.addEventListener('click', () => {
             changeTab(tab.dataset.tab);
@@ -974,17 +942,12 @@ function bindEvents() {
     document.querySelector('#cancel-product-edit')
         .addEventListener('click', resetProductForm);
 
-    // -----------------------------------------------
-    // PRÉVIA DE IMAGENS
-    // -----------------------------------------------
-
+  
     imageInput.addEventListener('change', () => {
         const file = imageInput.files[0];
 
         clearPreviewObjectUrl();
 
-        // Sem novo arquivo: restaura a prévia existente,
-        // exceto se a remoção já foi solicitada.
         if (!file) {
             showImagePreview(
                 removeCurrentImage
@@ -1000,7 +963,6 @@ function bindEvents() {
             'image/webp'
         ];
 
-        // Validação do formato.
         if (!allowedTypes.includes(file.type)) {
             imageInput.value = '';
 
@@ -1018,7 +980,6 @@ function bindEvents() {
             return;
         }
 
-        // Validação do tamanho.
         if (file.size > 2 * 1024 * 1024) {
             imageInput.value = '';
 
@@ -1036,40 +997,29 @@ function bindEvents() {
             return;
         }
 
-        // Selecionar outra imagem cancela a solicitação
-        // de remoção da imagem anterior.
+
         removeCurrentImage = false;
 
-        // Cria a URL temporária para mostrar a prévia.
         previewObjectUrl = URL.createObjectURL(file);
 
         showImagePreview(previewObjectUrl);
     });
 
-    // -----------------------------------------------
-    // REMOVER IMAGEM
-    // -----------------------------------------------
+   
 
     removeImageButton.addEventListener('click', () => {
-        // Remove o arquivo escolhido do input.
         imageInput.value = '';
 
-        // Limpa a prévia.
         clearPreviewObjectUrl();
         showImagePreview(null);
 
-        // Se houver imagem salva no produto atual,
-        // marca sua remoção para quando o formulário
-        // for enviado ao Laravel.
+      
         removeCurrentImage =
             editingProductId !== null &&
             currentImagePath !== null;
     });
 
-    // -----------------------------------------------
-    // PAGINAÇÃO DE PRODUTOS
-    // -----------------------------------------------
-
+ 
     document.querySelector('#products-prev')
         .addEventListener('click', async () => {
             if (productsPage <= 1) return;
@@ -1098,9 +1048,7 @@ function bindEvents() {
             }
         });
 
-    // -----------------------------------------------
-    // PAGINAÇÃO DE PEDIDOS
-    // -----------------------------------------------
+   
 
     document.querySelector('#orders-prev')
         .addEventListener('click', async () => {
@@ -1130,9 +1078,6 @@ function bindEvents() {
             }
         });
 
-    // -----------------------------------------------
-    // FILTRO DE PEDIDOS
-    // -----------------------------------------------
 
     document.querySelector('#orders-filter')
         .addEventListener('change', async () => {
@@ -1147,9 +1092,6 @@ function bindEvents() {
         });
 }
 
-// ======================================================
-// INICIALIZAÇÃO DO PAINEL
-// ======================================================
 
 async function initializeAdmin() {
     try {

@@ -10,7 +10,6 @@ class CartSeeder extends Seeder
 {
     public function run(): void
     {
-        // Carrinhos dos clientes autenticados.
         $customerCarts = [
             [
                 'email' => 'cliente1@rockerstore.test',
@@ -39,7 +38,6 @@ class CartSeeder extends Seeder
                 );
             }
 
-            // Um carrinho por usuário.
             $cart = DB::table('carts')
                 ->where('user_id', $user->id)
                 ->first();
@@ -58,8 +56,6 @@ class CartSeeder extends Seeder
             $this->insertItems($cartId, $data['items']);
         }
 
-        // Carrinho fictício de visitante.
-        // Token derivado da senha de seed de desenvolvimento.
         $seedPassword = config('rockerstore.seed_password');
 
         if (empty($seedPassword)) {

@@ -1,9 +1,6 @@
 
 import './header.js';
 
-// ========================================
-// ELEMENTOS DO DOM
-// ========================================
 
 const loginForm = document.querySelector('#loginForm');
 const registerForm = document.querySelector('#registerForm');
@@ -16,9 +13,7 @@ const logoutButton = document.querySelector('#logoutButton');
 const adminLink = document.querySelector('#adminLink');
 const accountLink = document.querySelector('#accountLink');
 
-// ========================================
-// MENSAGENS DE AUTENTICAÇÃO
-// ========================================
+
 
 function setAuthMessage(text, type = 'danger') {
     if (!authMessage) return;
@@ -26,10 +21,6 @@ function setAuthMessage(text, type = 'danger') {
     authMessage.className = `alert alert-${type}`;
     authMessage.textContent = text;
 }
-
-// ========================================
-// TOKEN CSRF
-// ========================================
 
 function getXsrfToken() {
     const cookie = document.cookie.split('; ')
@@ -41,10 +32,6 @@ function getXsrfToken() {
         )
         : null;
 }
-
-// ========================================
-// REQUISIÇÕES PARA A API
-// ========================================
 
 async function apiRequest(path, options = {}) {
     const method = (options.method ?? 'GET').toUpperCase();
@@ -110,10 +97,6 @@ async function apiRequest(path, options = {}) {
     return result;
 }
 
-// ========================================
-// DESTINO APÓS LOGIN OU CADASTRO
-// ========================================
-
 function getDestination() {
     const next = new URLSearchParams(
         window.location.search
@@ -128,10 +111,6 @@ function getDestination() {
 
     return allowed.includes(next) ? next : '/';
 }
-
-// ========================================
-// DADOS DO FORMULÁRIO
-// ========================================
 
 function getCredentials(form, type) {
     const formData = new FormData(form);
@@ -150,10 +129,6 @@ function getCredentials(form, type) {
 
     return credentials;
 }
-
-// ========================================
-// AVISOS SOBRE A INTEGRAÇÃO DO CARRINHO
-// ========================================
 
 function showCartWarnings(warnings, destination) {
     const text = warnings
@@ -176,10 +151,6 @@ function showCartWarnings(warnings, destination) {
 
     authMessage.appendChild(link);
 }
-
-// ========================================
-// LOGIN E CADASTRO
-// ========================================
 
 async function handleAuth(event, type) {
     event.preventDefault();
@@ -252,10 +223,6 @@ async function handleAuth(event, type) {
     }
 }
 
-// ========================================
-// CARREGAMENTO DA SESSÃO
-// ========================================
-
 async function loadSession() {
     if (
         !loginLink ||
@@ -269,23 +236,19 @@ async function loadSession() {
     try {
         const user = await apiRequest('user');
 
-        // Oculta os links de visitantes.
         loginLink.classList.add('d-none');
         registerLink.classList.add('d-none');
 
-        // Exibe nome e opção de logout.
         userWelcome.textContent = `Olá, ${user.name}`;
 
         userWelcome.classList.remove('d-none');
         logoutButton.classList.remove('d-none');
 
-        // Minha conta: disponível para qualquer
-        // usuário autenticado.
+ 
         if (accountLink) {
             accountLink.classList.remove('d-none');
         }
 
-        // Painel: disponível apenas para admin.
         if (adminLink && user.role === 'admin') {
             adminLink.classList.remove('d-none');
         }
@@ -300,9 +263,6 @@ async function loadSession() {
     }
 }
 
-// ========================================
-// LOGOUT
-// ========================================
 
 async function logout() {
     if (!logoutButton) return;
@@ -323,9 +283,6 @@ async function logout() {
     }
 }
 
-// ========================================
-// EVENTOS
-// ========================================
 
 function bindEvents() {
     if (loginForm) {
@@ -345,9 +302,6 @@ function bindEvents() {
     }
 }
 
-// ========================================
-// INICIALIZAÇÃO
-// ========================================
 
 function initializeAuth() {
     bindEvents();

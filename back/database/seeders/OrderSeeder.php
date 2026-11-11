@@ -61,7 +61,6 @@ class OrderSeeder extends Seeder
                     );
                 }
 
-                // Congela os dados do endereço.
                 $addressSnapshot = json_encode([
                     'recipient_name' => $address->recipient_name,
                     'zip_code' => $address->zip_code,
@@ -102,7 +101,6 @@ class OrderSeeder extends Seeder
                 $shipping = $data['shipping_cents'];
                 $total = $subtotal + $shipping;
 
-                // Localiza o pedido de exemplo.
                 $existingOrder = DB::table('orders')
                     ->where('user_id', $user->id)
                     ->where('status', $data['status'])
@@ -136,7 +134,6 @@ class OrderSeeder extends Seeder
                         ]);
                 }
 
-                // Cria ou atualiza os itens do pedido.
                 foreach ($orderItems as $item) {
                     DB::table('order_items')->updateOrInsert(
                         [
