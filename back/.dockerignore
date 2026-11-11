@@ -12,3 +12,5 @@ tests/
 
 storage/logs/*
 storage/framework/cache/*
+storage/app/public/products/
+public/storage
