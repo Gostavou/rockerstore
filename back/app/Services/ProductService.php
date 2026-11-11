@@ -48,10 +48,35 @@ class ProductService
             );
         }
 
+
+        $sort = $filters['sort'] ?? 'name';
+
+        switch ($sort) {
+            case 'price_asc':
+                $query->orderBy('price_cents', 'asc')
+                    ->orderBy('id');
+                break;
+
+            case 'price_desc':
+                $query->orderBy('price_cents', 'desc')
+                    ->orderBy('id');
+                break;
+
+            case 'recent':
+                $query->orderBy('created_at', 'desc')
+                    ->orderBy('id', 'desc');
+                break;
+
+            default:
+                $query->orderBy('name', 'asc')
+                    ->orderBy('id');
+                break;
+        }
+
         return $query
-            ->orderBy('name')
             ->paginate(12)
             ->withQueryString();
+
     }
 
 

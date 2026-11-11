@@ -3,6 +3,7 @@ import './header.js';
 const productList = document.querySelector('#productList');
 const message = document.querySelector('#message');
 const categorySelect = document.querySelector('#category');
+const sortSelect = document.querySelector('#sort');
 const searchInput = document.querySelector('#search');
 const filterForm = document.querySelector('#filtroForm');
 const prevButton = document.querySelector('#prevPage');
@@ -235,6 +236,7 @@ async function loadProducts() {
 
     const search = searchInput.value.trim();
     const categoryId = categorySelect.value;
+    const sort = sortSelect.value;
 
     if (search) {
         params.set('search', search);
@@ -243,6 +245,8 @@ async function loadProducts() {
     if (categoryId) {
         params.set('category_id', categoryId);
     }
+
+    params.set('sort', sort);
 
     try {
         const response = await apiRequest(`products?${params}`);
@@ -334,6 +338,11 @@ function bindEvents() {
 
         currentPage++;
         loadProducts();
+    });
+
+    sortSelect.addEventListener('change', () => {
+    currentPage = 1;
+    loadProducts();
     });
 }
 

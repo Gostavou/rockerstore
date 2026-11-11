@@ -44,6 +44,11 @@ class ListProductsRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+            'sort' => [
+            'sometimes',
+            'string',
+            'in:name,price_asc,price_desc,recent',
+            ],
         ];
 
         if ($this->filled('min_price_cents')) {
