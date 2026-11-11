@@ -21,13 +21,11 @@ class ProductResource extends JsonResource
 
             'image_path' => $this->image_path,
 
-            'category' => [
+            'category' => $this->category ? [
                 'id' => $this->category->id,
                 'name' => $this->category->name,
                 'slug' => $this->category->slug,
-
-
-            ],
+            ] : null,
         ];
     }
 }
