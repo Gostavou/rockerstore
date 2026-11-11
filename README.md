@@ -97,6 +97,70 @@ O sistema realiza validação de disponibilidade e quantidade, registra os itens
 
 O pagamento é simulado, sem integração com gateways financeiros externos. O frete utiliza um valor fixo demonstrativo.
 
+## Contas de teste
+
+O projeto possui seeders que criam usuários demonstrativos para verificar as funcionalidades de clientes e administradores.
+
+| E-mail                    | Papel         |
+| ------------------------- | ------------- |
+| admin@rockerstore.test    | Administrador |
+| cliente1@rockerstore.test | Cliente       |
+| cliente2@rockerstore.test | Cliente       |
+| cliente3@rockerstore.test | Cliente       |
+
+Todas as contas demonstrativas utilizam a senha configurada na variável `ROCKERSTORE_SEED_PASSWORD` do arquivo `back/.env`.
+
+A senha não é armazenada diretamente no código nem publicada no repositório.
+
+Para gerar os dados demonstrativos em um banco de desenvolvimento preparado para isso:
+
+`docker compose exec api php artisan db:seed`
+
+A execução completa dos seeders pode atualizar registros demonstrativos existentes, incluindo informações de produtos. Não execute esse comando em um banco com dados que deseja preservar sem antes realizar uma cópia de segurança.
+
+Os dados incluem categorias, produtos, endereços, carrinhos e pedidos em diferentes estados.
+
+## Regra de fusão dos carrinhos
+
+A RockerStore permite que visitantes adicionem produtos ao carrinho antes de realizar o login ou cadastro.
+
+O carrinho do visitante é armazenado no banco de dados e identificado por um token associado a um cookie. O token é gerado aleatoriamente e seu hash SHA-256 é utilizado para localizar o carrinho.
+
+Quando o visitante realiza login ou cadastro, o sistema executa a fusão do carrinho de visitante com o carrinho da conta autenticada.
+
+### Regras utilizadas
+
+1. Se o produto existir apenas no carrinho do visitante, ele será transferido ao carrinho do usuário.
+2. Se o produto existir nos dois carrinhos, as quantidades serão somadas.
+3. Se a soma ultrapassar o estoque disponível, a quantidade será limitada ao estoque.
+4. Produtos inativos, inexistentes ou sem estoque não serão transferidos.
+5. Caso alguma quantidade seja ajustada ou algum produto não seja transferido, a API retornará avisos.
+6. Após a fusão, o carrinho de visitante será excluído e seu cookie de identificação será removido.
+
+A operação é realizada por meio do método `mergeGuestCart()` da classe `CartService`, utilizando uma transação de banco de dados.
+
+### Exemplo
+
+Um visitante possui duas unidades de uma guitarra no carrinho.
+
+O mesmo usuário já possui três unidades dessa guitarra no carrinho de sua conta.
+
+Ao realizar o login:
+
+- Quantidade do visitante: 2.
+- Quantidade da conta: 3.
+- Quantidade solicitada após a fusão: 5.
+
+Se o estoque disponível for de quatro unidades, o carrinho ficará com quatro unidades, e a API informará que a quantidade foi ajustada.
+
+### Cálculo dos valores
+
+Os valores do carrinho são calculados pelo servidor com base nos preços atuais dos produtos.
+
+O carrinho não congela preços. O congelamento ocorre somente na criação do pedido, quando o sistema registra o nome e o preço unitário praticado.
+
+Essa regra evita que o frontend determine os valores utilizados no checkout.
+
 ## Requisitos
 
 Para executar o ambiente de desenvolvimento, é necessário ter instalado:
@@ -123,9 +187,17 @@ Caso esteja utilizando a branch de desenvolvimento:
 
 Crie o arquivo `.env` na raiz a partir de `.env.example`.
 
-No PowerShell:
+No Prompt de Comando do Windows (CMD):
 
-`Copy-Item .env.example .env`
+`copy .env.example .env`
+
+`copy back\.env.example back\.env`
+
+No Git Bash, Linux ou macOS:
+
+`cp .env.example .env`
+
+`cp back/.env.example back/.env`
 
 Configure os valores utilizados pelo Docker Compose:
 
