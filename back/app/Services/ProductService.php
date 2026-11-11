@@ -4,6 +4,10 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 
 class ProductService
 {
@@ -13,7 +17,6 @@ class ProductService
             ->with('category')
             ->where('is_active', true);
 
-        // Pesquisa pelo nome
         if (!empty($filters['search'])) {
             $query->where(
                 'name',
@@ -22,7 +25,6 @@ class ProductService
             );
         }
 
-        // Filtro por categoria
         if (isset($filters['category_id'])) {
             $query->where(
                 'category_id',
@@ -30,7 +32,6 @@ class ProductService
             );
         }
 
-        // Preço mínimo
         if (isset($filters['min_price_cents'])) {
             $query->where(
                 'price_cents',
@@ -39,7 +40,6 @@ class ProductService
             );
         }
 
-        // Preço máximo
         if (isset($filters['max_price_cents'])) {
             $query->where(
                 'price_cents',
@@ -73,20 +73,87 @@ class ProductService
             ->findOrFail($id);
     }
 
-    public function create(array $data): Product
-    {
+    public function create(
+        array $data,
+        ?UploadedFile $image = null
+    ): Product {
         $data['is_active'] = $data['is_active'] ?? true;
 
-        $product = Product::create($data);
+        $newPath = null;
+
+        if ($image !== null) {
+            $newPath = $image->store('products', 'public');
+
+            if ($newPath === false) {
+                throw new RuntimeException(
+                    'Não foi possível salvar a imagem do produto.'
+                );
+            }
+
+            $data['image_path'] = $newPath;
+        }
+
+        try {
+            $product = Product::create($data);
+        } catch (Throwable $exception) {
+            if ($newPath !== null) {
+                Storage::disk('public')->delete($newPath);
+            }
+
+            throw $exception;
+        }
 
         return $product->load('category');
     }
 
-    public function update(int $id, array $data): Product
-    {
+    public function update(
+        int $id,
+        array $data,
+        ?UploadedFile $image = null,
+        bool $removeImage = false
+    ): Product {
         $product = Product::findOrFail($id);
 
-        $product->update($data);
+        $oldPath = $product->image_path;
+        $newPath = null;
+
+        if ($image !== null) {
+            $newPath = $image->store('products', 'public');
+
+            if ($newPath === false) {
+                throw new RuntimeException(
+                    'Não foi possível salvar a nova imagem.'
+                );
+            }
+
+            $data['image_path'] = $newPath;
+        } elseif ($removeImage) {
+            $data['image_path'] = null;
+        }
+
+        try {
+            $product->update($data);
+        } catch (Throwable $exception) {
+            if ($newPath !== null) {
+                Storage::disk('public')->delete($newPath);
+            }
+
+            throw $exception;
+        }
+
+        if (
+            ($newPath !== null || $removeImage) &&
+            is_string($oldPath) &&
+            preg_match(
+                '~^products/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$~i',
+                $oldPath
+            ) === 1 &&
+            !Product::withTrashed()
+                ->where('image_path', $oldPath)
+                ->exists()
+        ) {
+            Storage::disk('public')->delete($oldPath);
+        }
 
         return $product->load('category');
     }

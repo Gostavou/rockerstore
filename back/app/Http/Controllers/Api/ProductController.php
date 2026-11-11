@@ -48,8 +48,11 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): JsonResponse
     {
+        $data = $request->safe()->except(['image']);
+
         $product = $this->productService->create(
-            $request->validated()
+            $data,
+            $request->file('image')
         );
 
         return response()->json([
@@ -62,9 +65,16 @@ class ProductController extends Controller
         UpdateProductRequest $request,
         int $product
     ): JsonResponse {
+        $data = $request->safe()->except([
+            'image',
+            'remove_image',
+        ]);
+
         $updatedProduct = $this->productService->update(
             $product,
-            $request->validated()
+            $data,
+            $request->file('image'),
+            $request->boolean('remove_image')
         );
 
         return response()->json([

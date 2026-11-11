@@ -149,14 +149,35 @@
 
                                 </div>
 
-                                <label for="product-image"
-                                       class="form-label">
-                                    Caminho da imagem
+                                <label for="product-image" class="form-label">
+                                    Imagem do produto
                                 </label>
 
                                 <input id="product-image"
-                                       class="form-control mb-4"
-                                       maxlength="255">
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    class="form-control mb-2">
+
+                                <p class="text-secondary small mb-2">
+                                    Formatos: JPG, PNG ou WebP. Máximo: 2 MB.
+                                </p>
+
+                                <div id="product-image-preview" class="mb-4" hidden>
+                                    <div class="d-flex align-items-center gap-3">
+
+                                        <img id="product-image-preview-img"
+                                            alt="Prévia da imagem do produto"
+                                            class="img-thumbnail"
+                                            style="width: 100px; height: 100px; object-fit: contain;">
+
+                                        <button id="remove-product-image"
+                                                type="button"
+                                                class="btn btn-outline-danger btn-sm">
+                                            Remover imagem
+                                        </button>
+
+                                    </div>
+                                </div>
 
 
                                 <div class="form-check form-switch mb-4">

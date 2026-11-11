@@ -48,11 +48,16 @@ class UpdateProductRequest extends FormRequest
                 'min:0',
             ],
 
-            'image_path' => [
-                'sometimes',
-                'nullable',
-                'string',
-                'max:255',
+            'image' => [
+            'nullable',
+            'image',
+            'mimes:jpg,jpeg,png,webp',
+            'max:2048',
+            ],
+
+            'remove_image' => [
+            'sometimes',
+            'boolean',
             ],
 
             'is_active' => [

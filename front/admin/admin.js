@@ -1,3 +1,4 @@
+
 import '../js/auth.js';
 
 const statusElement = document.querySelector('#admin-status');
@@ -11,6 +12,11 @@ const detailsContent = document.querySelector('#admin-order-content');
 const orderActions = document.querySelector('#admin-order-actions');
 const productForm = document.querySelector('#product-form');
 const categoryForm = document.querySelector('#category-form');
+
+const imageInput = document.querySelector('#product-image');
+const imagePreview = document.querySelector('#product-image-preview');
+const imagePreviewImg = document.querySelector('#product-image-preview-img');
+const removeImageButton = document.querySelector('#remove-product-image');
 
 const statusLabels = {
     aguardando_pagamento: 'Aguardando pagamento',
@@ -29,6 +35,10 @@ let productsLastPage = 1;
 let ordersPage = 1;
 let ordersLastPage = 1;
 let busy = false;
+
+let currentImagePath = null;
+let removeCurrentImage = false;
+let previewObjectUrl = null;
 
 const money = cents => new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -73,12 +83,18 @@ async function apiRequest(path, options = {}) {
         }
 
         const token = getXsrfToken();
-        if (!token) throw new Error('Token CSRF indisponível.');
+
+        if (!token) {
+            throw new Error('Token CSRF indisponível.');
+        }
 
         headers['X-XSRF-TOKEN'] = token;
     }
 
-    if (options.data !== undefined) {
+    if (
+        options.data !== undefined &&
+        !(options.data instanceof FormData)
+    ) {
         headers['Content-Type'] = 'application/json';
     }
 
@@ -86,9 +102,11 @@ async function apiRequest(path, options = {}) {
         method,
         credentials: 'same-origin',
         headers,
-        body: options.data !== undefined
-            ? JSON.stringify(options.data)
-            : undefined
+        body: options.data instanceof FormData
+            ? options.data
+            : options.data !== undefined
+                ? JSON.stringify(options.data)
+                : undefined
     });
 
     const result = await response.json().catch(() => ({}));
@@ -98,7 +116,9 @@ async function apiRequest(path, options = {}) {
             .flat().join(' ');
 
         const error = new Error(
-            validation || result.message || `Erro HTTP ${response.status}`
+            validation ||
+            result.message ||
+            `Erro HTTP ${response.status}`
         );
 
         error.status = response.status;
@@ -145,6 +165,7 @@ function changeTab(name) {
 
     for (const tab of document.querySelectorAll('[data-tab]')) {
         const active = tab.dataset.tab === name;
+
         tab.classList.toggle('active', active);
         tab.setAttribute('aria-pressed', String(active));
     }
@@ -154,6 +175,10 @@ function changeTab(name) {
             section !== name;
     }
 }
+
+// ======================================================
+// CATEGORIAS
+// ======================================================
 
 function resetCategoryForm() {
     editingCategoryId = null;
@@ -176,9 +201,13 @@ function renderCategories() {
     for (const category of categories) {
         const row = createElement('div', '', 'admin-list-row');
         const info = document.createElement('div');
+
         const name = createElement('strong', category.name);
+
         const slug = createElement(
-            'p', category.slug, 'text-secondary small mb-0'
+            'p',
+            category.slug,
+            'text-secondary small mb-0'
         );
 
         info.append(name, slug);
@@ -200,7 +229,9 @@ function renderCategories() {
                 document.querySelector('#cancel-category-edit').hidden =
                     false;
 
-                categoryForm.scrollIntoView({ behavior: 'smooth' });
+                categoryForm.scrollIntoView({
+                    behavior: 'smooth'
+                });
             }
         );
 
@@ -212,6 +243,7 @@ function renderCategories() {
 
         actions.append(edit, remove);
         row.append(info, actions);
+
         categoriesList.appendChild(row);
     }
 }
@@ -233,6 +265,7 @@ async function loadCategories() {
     const response = await apiRequest('categories');
 
     categories = response.data ?? [];
+
     renderCategories();
     fillCategoriesSelect();
 }
@@ -241,7 +274,9 @@ async function saveCategory(event) {
     event.preventDefault();
 
     await executeAction(async () => {
-        const name = document.querySelector('#category-name').value.trim();
+        const name = document.querySelector('#category-name')
+            .value.trim();
+
         const editing = editingCategoryId !== null;
 
         await apiRequest(
@@ -257,6 +292,7 @@ async function saveCategory(event) {
         resetCategoryForm();
         await loadCategories();
         await loadProducts();
+
         setStatus('Categoria salva com sucesso.');
     });
 }
@@ -269,19 +305,81 @@ async function deleteCategory(id) {
             method: 'DELETE'
         });
 
-        if (editingCategoryId === id) resetCategoryForm();
+        if (editingCategoryId === id) {
+            resetCategoryForm();
+        }
 
         await loadCategories();
         await loadProducts();
+
         setStatus('Categoria excluída com sucesso.');
     });
 }
 
+// ======================================================
+// IMAGENS DOS PRODUTOS
+// ======================================================
+
+// Converte o caminho salvo no banco em uma URL.
+function getProductImageUrl(path) {
+    if (!path || typeof path !== 'string') {
+        return null;
+    }
+
+    const value = path.trim();
+
+    if (/^https?:\/\//i.test(value)) {
+        return value;
+    }
+
+    if (value.startsWith('//')) {
+        return null;
+    }
+
+    if (value.startsWith('/')) {
+        return value;
+    }
+
+    return `/storage/${value.replace(/^storage\//, '')}`;
+}
+
+// Libera a URL temporária criada para a prévia.
+function clearPreviewObjectUrl() {
+    if (previewObjectUrl !== null) {
+        URL.revokeObjectURL(previewObjectUrl);
+        previewObjectUrl = null;
+    }
+}
+
+// Exibe ou oculta a prévia.
+function showImagePreview(url) {
+    if (!url) {
+        imagePreviewImg.removeAttribute('src');
+        imagePreview.hidden = true;
+        return;
+    }
+
+    imagePreviewImg.src = url;
+    imagePreview.hidden = false;
+}
+
+// ======================================================
+// PRODUTOS
+// ======================================================
+
 function resetProductForm() {
     editingProductId = null;
+
+    currentImagePath = null;
+    removeCurrentImage = false;
+
+    clearPreviewObjectUrl();
+    showImagePreview(null);
+
     productForm.reset();
 
     document.querySelector('#product-active').checked = true;
+
     document.querySelector('#product-form-title').textContent =
         'Cadastrar produto';
 
@@ -291,7 +389,9 @@ function resetProductForm() {
 function editProduct(product) {
     editingProductId = product.id;
 
-    document.querySelector('#product-name').value = product.name;
+    document.querySelector('#product-name').value =
+        product.name;
+
     document.querySelector('#product-category').value =
         product.category?.id ?? '';
 
@@ -304,8 +404,18 @@ function editProduct(product) {
     document.querySelector('#product-stock').value =
         product.stock_quantity;
 
-    document.querySelector('#product-image').value =
-        product.image_path ?? '';
+    // Limpa o seletor, mas mantém a imagem salva.
+    imageInput.value = '';
+
+    currentImagePath = product.image_path ?? null;
+    removeCurrentImage = false;
+
+    clearPreviewObjectUrl();
+
+    // Exibe a imagem atual na prévia.
+    showImagePreview(
+        getProductImageUrl(currentImagePath)
+    );
 
     document.querySelector('#product-active').checked =
         Boolean(product.is_active);
@@ -315,7 +425,9 @@ function editProduct(product) {
 
     document.querySelector('#cancel-product-edit').hidden = false;
 
-    productForm.scrollIntoView({ behavior: 'smooth' });
+    productForm.scrollIntoView({
+        behavior: 'smooth'
+    });
 }
 
 function renderProducts(products) {
@@ -329,14 +441,20 @@ function renderProducts(products) {
     for (const product of products) {
         const row = createElement('div', '', 'admin-list-row');
         const info = document.createElement('div');
-        const name = createElement('strong', product.name);
+
+        const name = createElement(
+            'strong',
+            product.name
+        );
 
         const status = createElement(
             'span',
             product.is_active ? 'Ativo' : 'Inativo',
-            `badge ms-2 ${product.is_active
-                ? 'text-bg-success'
-                : 'text-bg-secondary'}`
+            `badge ms-2 ${
+                product.is_active
+                    ? 'text-bg-success'
+                    : 'text-bg-secondary'
+            }`
         );
 
         name.appendChild(status);
@@ -349,7 +467,11 @@ function renderProducts(products) {
 
         info.append(name, description);
 
-        const actions = createElement('div', '', 'd-flex gap-2');
+        const actions = createElement(
+            'div',
+            '',
+            'd-flex gap-2'
+        );
 
         const edit = createButton(
             'Editar',
@@ -365,6 +487,7 @@ function renderProducts(products) {
 
         actions.append(edit, remove);
         row.append(info, actions);
+
         productsList.appendChild(row);
     }
 }
@@ -421,50 +544,112 @@ async function saveProduct(event) {
             throw new Error('Dados do produto inválidos.');
         }
 
-        const data = {
-            name: document.querySelector('#product-name').value.trim(),
-            category_id: categoryId,
-            description: document.querySelector('#product-description')
-                .value.trim() || null,
-            price_cents: Math.round(price * 100),
-            stock_quantity: stock,
-            image_path: document.querySelector('#product-image')
-                .value.trim() || null,
-            is_active: document.querySelector('#product-active').checked
-        };
+        // FormData permite enviar campos e arquivos.
+        const data = new FormData();
+
+        data.append(
+            'name',
+            document.querySelector('#product-name').value.trim()
+        );
+
+        data.append(
+            'category_id',
+            String(categoryId)
+        );
+
+        data.append(
+            'description',
+            document.querySelector('#product-description')
+                .value.trim()
+        );
+
+        data.append(
+            'price_cents',
+            String(Math.round(price * 100))
+        );
+
+        data.append(
+            'stock_quantity',
+            String(stock)
+        );
+
+        data.append(
+            'is_active',
+            document.querySelector('#product-active').checked
+                ? '1'
+                : '0'
+        );
+
+        // Obtém o arquivo selecionado.
+        const imageFile = imageInput.files[0];
+
+        if (imageFile) {
+            if (imageFile.size > 2 * 1024 * 1024) {
+                throw new Error(
+                    'A imagem deve ter no máximo 2 MB.'
+                );
+            }
+
+            data.append('image', imageFile);
+        }
 
         const editing = editingProductId !== null;
+
+        if (editing) {
+            // Laravel interpreta o POST como PUT.
+            data.append('_method', 'PUT');
+
+            // Informa ao backend que a imagem salva
+            // deve ser removida quando clicar em Salvar.
+            if (removeCurrentImage && !imageFile) {
+                data.append('remove_image', '1');
+            }
+        }
 
         await apiRequest(
             editing
                 ? `admin/products/${editingProductId}`
                 : 'admin/products',
             {
-                method: editing ? 'PUT' : 'POST',
+                method: 'POST',
                 data
             }
         );
 
         resetProductForm();
+
         await loadProducts();
+
         setStatus('Produto salvo com sucesso.');
     });
 }
 
 async function deleteProduct(id) {
-    if (!confirm('Deseja excluir este produto?')) return;
+    if (!confirm('Deseja excluir este produto?')) {
+        return;
+    }
 
     await executeAction(async () => {
-        await apiRequest(`admin/products/${id}`, {
-            method: 'DELETE'
-        });
+        await apiRequest(
+            `admin/products/${id}`,
+            {
+                method: 'DELETE'
+            }
+        );
 
-        if (editingProductId === id) resetProductForm();
+        if (editingProductId === id) {
+            resetProductForm();
+        }
 
         await loadProducts();
+
         setStatus('Produto excluído com sucesso.');
     });
 }
+
+// ======================================================
+// ENDEREÇO DO PEDIDO
+// ======================================================
 
 function formatAddress(address) {
     if (!address || typeof address !== 'object') {
@@ -473,22 +658,35 @@ function formatAddress(address) {
 
     return [
         address.recipient_name,
-        [address.street, address.number].filter(Boolean).join(', '),
+        [address.street, address.number]
+            .filter(Boolean)
+            .join(', '),
         address.complement,
         address.district,
-        [address.city, address.state].filter(Boolean).join('/'),
+        [address.city, address.state]
+            .filter(Boolean)
+            .join('/'),
         address.zip_code
     ].filter(Boolean).join(' — ');
 }
+
+// ======================================================
+// PEDIDOS
+// ======================================================
 
 function renderOrders(orders) {
     ordersBody.replaceChildren();
 
     if (orders.length === 0) {
         const row = document.createElement('tr');
-        const cell = createElement('td', 'Nenhum pedido encontrado.');
+
+        const cell = createElement(
+            'td',
+            'Nenhum pedido encontrado.'
+        );
 
         cell.colSpan = 5;
+
         row.appendChild(cell);
         ordersBody.appendChild(row);
         return;
@@ -496,7 +694,11 @@ function renderOrders(orders) {
 
     for (const order of orders) {
         const row = document.createElement('tr');
-        const id = createElement('td', `#${order.id}`);
+
+        const id = createElement(
+            'td',
+            `#${order.id}`
+        );
 
         const customer = createElement(
             'td',
@@ -522,18 +724,29 @@ function renderOrders(orders) {
         );
 
         actions.appendChild(button);
-        row.append(id, customer, status, total, actions);
+
+        row.append(
+            id,
+            customer,
+            status,
+            total,
+            actions
+        );
+
         ordersBody.appendChild(row);
     }
 }
 
 async function loadOrders() {
     const filter = document.querySelector('#orders-filter').value;
+
     const params = new URLSearchParams({
         page: String(ordersPage)
     });
 
-    if (filter) params.set('status', filter);
+    if (filter) {
+        params.set('status', filter);
+    }
 
     const response = await apiRequest(
         `admin/orders?${params.toString()}`
@@ -549,7 +762,9 @@ async function loadOrders() {
     renderOrders(response.data ?? []);
 
     ordersCount.textContent =
-        response.meta?.total ?? response.data?.length ?? 0;
+        response.meta?.total ??
+        response.data?.length ??
+        0;
 
     document.querySelector('#orders-page').textContent =
         `Página ${ordersPage} de ${ordersLastPage}`;
@@ -571,6 +786,7 @@ function renderOrderActions(order) {
                 'btn btn-success',
                 () => changeOrder(order.id, 'pay')
             ),
+
             createButton(
                 'Cancelar pedido',
                 'btn btn-outline-danger',
@@ -584,7 +800,11 @@ function renderOrderActions(order) {
             createButton(
                 'Marcar como enviado',
                 'btn btn-danger',
-                () => changeOrder(order.id, 'status', 'enviado')
+                () => changeOrder(
+                    order.id,
+                    'status',
+                    'enviado'
+                )
             )
         );
     }
@@ -594,7 +814,11 @@ function renderOrderActions(order) {
             createButton(
                 'Marcar como entregue',
                 'btn btn-danger',
-                () => changeOrder(order.id, 'status', 'entregue')
+                () => changeOrder(
+                    order.id,
+                    'status',
+                    'entregue'
+                )
             )
         );
     }
@@ -602,9 +826,15 @@ function renderOrderActions(order) {
 
 function renderOrderDetails(order) {
     currentOrder = order;
+
     detailsContent.replaceChildren();
 
-    addDetail(detailsContent, 'Pedido', `#${order.id}`);
+    addDetail(
+        detailsContent,
+        'Pedido',
+        `#${order.id}`
+    );
+
     addDetail(
         detailsContent,
         'Status',
@@ -623,27 +853,51 @@ function renderOrderDetails(order) {
         formatAddress(order.address_snapshot)
     );
 
-    const title = createElement('h3', 'Produtos', 'admin-detail-title');
+    const title = createElement(
+        'h3',
+        'Produtos',
+        'admin-detail-title'
+    );
+
     detailsContent.appendChild(title);
 
     for (const item of order.items ?? []) {
+        const categoryName =
+            item.category_name ?? 'Sem categoria';
+
         addDetail(
             detailsContent,
-            `${item.product_name} × ${item.quantity}`,
+            `${item.product_name} (${categoryName}) × ${item.quantity}`,
             money(item.subtotal_cents)
         );
     }
 
-    addDetail(detailsContent, 'Subtotal', money(order.subtotal_cents));
-    addDetail(detailsContent, 'Frete', money(order.shipping_cents));
-    addDetail(detailsContent, 'Total', money(order.total_cents));
+    addDetail(
+        detailsContent,
+        'Subtotal',
+        money(order.subtotal_cents)
+    );
+
+    addDetail(
+        detailsContent,
+        'Frete',
+        money(order.shipping_cents)
+    );
+
+    addDetail(
+        detailsContent,
+        'Total',
+        money(order.total_cents)
+    );
 
     renderOrderActions(order);
 }
 
 async function showOrder(id) {
     detailsSection.hidden = false;
-    detailsContent.textContent = 'Carregando pedido...';
+
+    detailsContent.textContent =
+        'Carregando pedido...';
 
     try {
         const response = await apiRequest(
@@ -687,25 +941,134 @@ async function changeOrder(id, action, status = null) {
 
         await loadOrders();
         await showOrder(id);
+
         setStatus('Pedido atualizado com sucesso.');
     });
 }
 
+// ======================================================
+// EVENTOS
+// ======================================================
+
 function bindEvents() {
+    // Navegação entre abas.
     for (const tab of document.querySelectorAll('[data-tab]')) {
         tab.addEventListener('click', () => {
             changeTab(tab.dataset.tab);
         });
     }
 
-    categoryForm.addEventListener('submit', saveCategory);
-    productForm.addEventListener('submit', saveProduct);
+    categoryForm.addEventListener(
+        'submit',
+        saveCategory
+    );
+
+    productForm.addEventListener(
+        'submit',
+        saveProduct
+    );
 
     document.querySelector('#cancel-category-edit')
         .addEventListener('click', resetCategoryForm);
 
     document.querySelector('#cancel-product-edit')
         .addEventListener('click', resetProductForm);
+
+    // -----------------------------------------------
+    // PRÉVIA DE IMAGENS
+    // -----------------------------------------------
+
+    imageInput.addEventListener('change', () => {
+        const file = imageInput.files[0];
+
+        clearPreviewObjectUrl();
+
+        // Sem novo arquivo: restaura a prévia existente,
+        // exceto se a remoção já foi solicitada.
+        if (!file) {
+            showImagePreview(
+                removeCurrentImage
+                    ? null
+                    : getProductImageUrl(currentImagePath)
+            );
+            return;
+        }
+
+        const allowedTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp'
+        ];
+
+        // Validação do formato.
+        if (!allowedTypes.includes(file.type)) {
+            imageInput.value = '';
+
+            showImagePreview(
+                removeCurrentImage
+                    ? null
+                    : getProductImageUrl(currentImagePath)
+            );
+
+            setStatus(
+                'Selecione uma imagem JPG, PNG ou WebP.',
+                true
+            );
+
+            return;
+        }
+
+        // Validação do tamanho.
+        if (file.size > 2 * 1024 * 1024) {
+            imageInput.value = '';
+
+            showImagePreview(
+                removeCurrentImage
+                    ? null
+                    : getProductImageUrl(currentImagePath)
+            );
+
+            setStatus(
+                'A imagem deve ter no máximo 2 MB.',
+                true
+            );
+
+            return;
+        }
+
+        // Selecionar outra imagem cancela a solicitação
+        // de remoção da imagem anterior.
+        removeCurrentImage = false;
+
+        // Cria a URL temporária para mostrar a prévia.
+        previewObjectUrl = URL.createObjectURL(file);
+
+        showImagePreview(previewObjectUrl);
+    });
+
+    // -----------------------------------------------
+    // REMOVER IMAGEM
+    // -----------------------------------------------
+
+    removeImageButton.addEventListener('click', () => {
+        // Remove o arquivo escolhido do input.
+        imageInput.value = '';
+
+        // Limpa a prévia.
+        clearPreviewObjectUrl();
+        showImagePreview(null);
+
+        // Se houver imagem salva no produto atual,
+        // marca sua remoção para quando o formulário
+        // for enviado ao Laravel.
+        removeCurrentImage =
+            editingProductId !== null &&
+            currentImagePath !== null;
+    });
+
+    // -----------------------------------------------
+    // PAGINAÇÃO DE PRODUTOS
+    // -----------------------------------------------
 
     document.querySelector('#products-prev')
         .addEventListener('click', async () => {
@@ -735,6 +1098,10 @@ function bindEvents() {
             }
         });
 
+    // -----------------------------------------------
+    // PAGINAÇÃO DE PEDIDOS
+    // -----------------------------------------------
+
     document.querySelector('#orders-prev')
         .addEventListener('click', async () => {
             if (ordersPage <= 1) return;
@@ -763,6 +1130,10 @@ function bindEvents() {
             }
         });
 
+    // -----------------------------------------------
+    // FILTRO DE PEDIDOS
+    // -----------------------------------------------
+
     document.querySelector('#orders-filter')
         .addEventListener('change', async () => {
             ordersPage = 1;
@@ -776,20 +1147,28 @@ function bindEvents() {
         });
 }
 
+// ======================================================
+// INICIALIZAÇÃO DO PAINEL
+// ======================================================
+
 async function initializeAdmin() {
     try {
         const response = await apiRequest('admin/check');
 
         if (!response.message) {
-            throw new Error('Resposta de autorização inesperada.');
+            throw new Error(
+                'Resposta de autorização inesperada.'
+            );
         }
 
         bindEvents();
+
         await loadCategories();
         await loadProducts();
         await loadOrders();
 
         dashboard.hidden = false;
+
         setStatus('Painel carregado com sucesso.');
 
     } catch (error) {

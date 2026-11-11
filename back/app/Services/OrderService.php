@@ -161,7 +161,9 @@ class OrderService
         );
 
         return $order->load(
-            $isAdmin ? ['items', 'user'] : ['items']
+            $isAdmin
+        ? ['items.product.category', 'user']
+        : ['items.product.category']
         );
     }
 

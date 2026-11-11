@@ -43,10 +43,11 @@ class StoreProductRequest extends FormRequest
                 'min:0',
             ],
 
-            'image_path' => [
-                'nullable',
-                'string',
-                'max:255',
+            'image' => [
+            'nullable',
+            'image',
+            'mimes:jpg,jpeg,png,webp',
+            'max:2048',
             ],
 
             'is_active' => [
