@@ -18,67 +18,43 @@ class ProductService
             ->where('is_active', true);
 
         if (!empty($filters['search'])) {
-            $query->where(
-                'name',
-                'like',
-                '%' . $filters['search'] . '%'
-            );
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
         }
 
         if (isset($filters['category_id'])) {
-            $query->where(
-                'category_id',
-                $filters['category_id']
-            );
+            $query->where('category_id', $filters['category_id']);
         }
 
         if (isset($filters['min_price_cents'])) {
-            $query->where(
-                'price_cents',
-                '>=',
-                $filters['min_price_cents']
-            );
+            $query->where('price_cents', '>=', $filters['min_price_cents']);
         }
 
         if (isset($filters['max_price_cents'])) {
-            $query->where(
-                'price_cents',
-                '<=',
-                $filters['max_price_cents']
-            );
+            $query->where('price_cents', '<=', $filters['max_price_cents']);
         }
-
 
         $sort = $filters['sort'] ?? 'name';
 
         switch ($sort) {
             case 'price_asc':
-                $query->orderBy('price_cents', 'asc')
-                    ->orderBy('id');
+                $query->orderBy('price_cents', 'asc')->orderBy('id');
                 break;
 
             case 'price_desc':
-                $query->orderBy('price_cents', 'desc')
-                    ->orderBy('id');
+                $query->orderBy('price_cents', 'desc')->orderBy('id');
                 break;
 
             case 'recent':
-                $query->orderBy('created_at', 'desc')
-                    ->orderBy('id', 'desc');
+                $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
                 break;
 
             default:
-                $query->orderBy('name', 'asc')
-                    ->orderBy('id');
+                $query->orderBy('name', 'asc')->orderBy('id');
                 break;
         }
 
-        return $query
-            ->paginate(12)
-            ->withQueryString();
-
+        return $query->paginate(12)->withQueryString();
     }
-
 
     public function listForAdmin(): LengthAwarePaginator
     {
@@ -89,7 +65,6 @@ class ProductService
             ->withQueryString();
     }
 
-
     public function getById(int $id): Product
     {
         return Product::query()
@@ -98,21 +73,16 @@ class ProductService
             ->findOrFail($id);
     }
 
-    public function create(
-        array $data,
-        ?UploadedFile $image = null
-    ): Product {
+    public function create(array $data, ?UploadedFile $image = null): Product
+    {
         $data['is_active'] = $data['is_active'] ?? true;
-
         $newPath = null;
 
         if ($image !== null) {
             $newPath = $image->store('products', 'public');
 
             if ($newPath === false) {
-                throw new RuntimeException(
-                    'Não foi possível salvar a imagem do produto.'
-                );
+                throw new RuntimeException('Não foi possível salvar a imagem do produto.');
             }
 
             $data['image_path'] = $newPath;
@@ -138,7 +108,6 @@ class ProductService
         bool $removeImage = false
     ): Product {
         $product = Product::findOrFail($id);
-
         $oldPath = $product->image_path;
         $newPath = null;
 
@@ -146,9 +115,7 @@ class ProductService
             $newPath = $image->store('products', 'public');
 
             if ($newPath === false) {
-                throw new RuntimeException(
-                    'Não foi possível salvar a nova imagem.'
-                );
+                throw new RuntimeException('Não foi possível salvar a nova imagem.');
             }
 
             $data['image_path'] = $newPath;
@@ -169,13 +136,8 @@ class ProductService
         if (
             ($newPath !== null || $removeImage) &&
             is_string($oldPath) &&
-            preg_match(
-                '~^products/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$~i',
-                $oldPath
-            ) === 1 &&
-            !Product::withTrashed()
-                ->where('image_path', $oldPath)
-                ->exists()
+            preg_match('~^products/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$~i', $oldPath) === 1 &&
+            !Product::withTrashed()->where('image_path', $oldPath)->exists()
         ) {
             Storage::disk('public')->delete($oldPath);
         }
@@ -186,7 +148,6 @@ class ProductService
     public function delete(int $id): void
     {
         $product = Product::findOrFail($id);
-
         $product->delete();
     }
 }

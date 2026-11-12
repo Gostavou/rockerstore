@@ -16,15 +16,8 @@ class UpdateOrderStatusRequest extends FormRequest
     {
         return [
             'status' => [
-                'required',
-                'string',
-                Rule::in([
-                    'aguardando_pagamento',
-                    'pago',
-                    'enviado',
-                    'entregue',
-                    'cancelado',
-                ]),
+                'required', 'string',
+                Rule::in(['aguardando_pagamento', 'pago', 'enviado', 'entregue', 'cancelado']),
             ],
         ];
     }

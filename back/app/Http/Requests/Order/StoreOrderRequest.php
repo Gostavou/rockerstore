@@ -14,11 +14,7 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address_id' => [
-                'required',
-                'integer',
-                'min:1',
-            ],
+            'address_id' => ['required', 'integer', 'min:1'],
         ];
     }
 }

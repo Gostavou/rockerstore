@@ -8,22 +8,16 @@ use Illuminate\Http\JsonResponse;
 
 class AccountController extends Controller
 {
-    public function update(
-        UpdateAccountRequest $request
-    ): JsonResponse {
+    public function update(UpdateAccountRequest $request): JsonResponse
+    {
         $user = $request->user();
-
-        $user->update(
-            $request->validated()
-        );
+        $user->update($request->validated());
 
         return response()->json([
             'message' => 'Dados atualizados com sucesso.',
             'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
+                'id' => $user->id, 'name' => $user->name,
+                'email' => $user->email, 'role' => $user->role,
             ],
         ], 200);
     }

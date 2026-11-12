@@ -13,28 +13,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AddressController extends Controller
 {
-    public function __construct(
-        private AddressService $addressService
-    ) {
+    public function __construct(private AddressService $addressService)
+    {
     }
 
-    public function index(
-        Request $request
-    ): AnonymousResourceCollection {
-        $addresses = $this->addressService->list(
-            $request->user()->id
-        );
-
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $addresses = $this->addressService->list($request->user()->id);
         return AddressResource::collection($addresses);
     }
 
-    public function store(
-        StoreAddressRequest $request
-    ): JsonResponse {
-        $address = $this->addressService->create(
-            $request->user()->id,
-            $request->validated()
-        );
+    public function store(StoreAddressRequest $request): JsonResponse
+    {
+        $address = $this->addressService->create($request->user()->id, $request->validated());
 
         return response()->json([
             'message' => 'Endereço cadastrado com sucesso.',
@@ -42,10 +33,8 @@ class AddressController extends Controller
         ], 201);
     }
 
-    public function update(
-        UpdateAddressRequest $request,
-        int $address
-    ): JsonResponse {
+    public function update(UpdateAddressRequest $request, int $address): JsonResponse
+    {
         $updatedAddress = $this->addressService->update(
             $request->user()->id,
             $address,
@@ -58,14 +47,9 @@ class AddressController extends Controller
         ], 200);
     }
 
-    public function destroy(
-        Request $request,
-        int $address
-    ): JsonResponse {
-        $this->addressService->delete(
-            $request->user()->id,
-            $address
-        );
+    public function destroy(Request $request, int $address): JsonResponse
+    {
+        $this->addressService->delete($request->user()->id, $address);
 
         return response()->json([
             'message' => 'Endereço excluído com sucesso.',

@@ -13,10 +13,7 @@ class GuestCartSessionService
     {
         $token = $request->cookie(self::COOKIE_NAME);
 
-        if (
-            is_string($token) &&
-            preg_match('/\A[a-f0-9]{64}\z/', $token)
-        ) {
+        if (is_string($token) && preg_match('/\A[a-f0-9]{64}\z/', $token)) {
             return $token;
         }
 
@@ -37,15 +34,11 @@ class GuestCartSessionService
         return $token;
     }
 
-
     public function existingToken(Request $request): ?string
     {
         $token = $request->cookie(self::COOKIE_NAME);
 
-        if (
-            is_string($token) &&
-            preg_match('/\A[a-f0-9]{64}\z/', $token) === 1
-        ) {
+        if (is_string($token) && preg_match('/\A[a-f0-9]{64}\z/', $token) === 1) {
             return $token;
         }
 
@@ -54,9 +47,6 @@ class GuestCartSessionService
 
     public function forget(): void
     {
-        Cookie::queue(
-            Cookie::forget(self::COOKIE_NAME)
-        );
+        Cookie::queue(Cookie::forget(self::COOKIE_NAME));
     }
-
 }

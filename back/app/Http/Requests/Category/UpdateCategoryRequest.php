@@ -18,11 +18,8 @@ class UpdateCategoryRequest extends FormRequest
 
         return [
             'name' => [
-                'required',
-                'string',
-                'max:120',
-                Rule::unique('categories', 'name')
-                    ->ignore($category),
+                'required', 'string', 'max:120',
+                Rule::unique('categories', 'name')->ignore($category),
             ],
         ];
     }

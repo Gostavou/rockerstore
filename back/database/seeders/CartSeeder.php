@@ -28,19 +28,13 @@ class CartSeeder extends Seeder
         ];
 
         foreach ($customerCarts as $data) {
-            $user = DB::table('users')
-                ->where('email', $data['email'])
-                ->first();
+            $user = DB::table('users')->where('email', $data['email'])->first();
 
             if (!$user) {
-                throw new RuntimeException(
-                    "Usuário não encontrado: {$data['email']}"
-                );
+                throw new RuntimeException("Usuário não encontrado: {$data['email']}");
             }
 
-            $cart = DB::table('carts')
-                ->where('user_id', $user->id)
-                ->first();
+            $cart = DB::table('carts')->where('user_id', $user->id)->first();
 
             if ($cart) {
                 $cartId = $cart->id;
@@ -59,17 +53,10 @@ class CartSeeder extends Seeder
         $seedPassword = config('rockerstore.seed_password');
 
         if (empty($seedPassword)) {
-            throw new RuntimeException(
-                'Configure ROCKERSTORE_SEED_PASSWORD no .env.'
-            );
+            throw new RuntimeException('Configure ROCKERSTORE_SEED_PASSWORD no .env.');
         }
 
-        $guestToken = hash_hmac(
-            'sha256',
-            'rockerstore-guest-demo-1',
-            $seedPassword
-        );
-
+        $guestToken = hash_hmac('sha256', 'rockerstore-guest-demo-1', $seedPassword);
         $guestTokenHash = hash('sha256', $guestToken);
 
         $guestCart = DB::table('carts')
@@ -93,19 +80,13 @@ class CartSeeder extends Seeder
         ]);
     }
 
-    private function insertItems(
-        int $cartId,
-        array $items
-    ): void {
+    private function insertItems(int $cartId, array $items): void
+    {
         foreach ($items as $productName => $quantity) {
-            $product = DB::table('products')
-                ->where('name', $productName)
-                ->first();
+            $product = DB::table('products')->where('name', $productName)->first();
 
             if (!$product) {
-                throw new RuntimeException(
-                    "Produto não encontrado: {$productName}"
-                );
+                throw new RuntimeException("Produto não encontrado: {$productName}");
             }
 
             DB::table('cart_items')->updateOrInsert(

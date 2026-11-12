@@ -10,18 +10,9 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            [
-                'name' => 'Guitarras',
-                'slug' => 'guitarras',
-            ],
-            [
-                'name' => 'Baixos',
-                'slug' => 'baixos',
-            ],
-            [
-                'name' => 'Baterias',
-                'slug' => 'baterias',
-            ],
+            ['name' => 'Guitarras', 'slug' => 'guitarras'],
+            ['name' => 'Baixos', 'slug' => 'baixos'],
+            ['name' => 'Baterias', 'slug' => 'baterias'],
         ];
 
         foreach ($categories as $category) {

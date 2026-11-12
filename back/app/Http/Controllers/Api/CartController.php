@@ -28,73 +28,43 @@ class CartController extends Controller
             return [$user->id, null];
         }
 
-        return [
-            null,
-            $this->guestCartSession->token($request),
-        ];
+        return [null, $this->guestCartSession->token($request)];
     }
-
 
     public function index(Request $request): JsonResponse
     {
         [$userId, $guestToken] = $this->identity($request);
+        $cart = $this->cartService->get($userId, $guestToken);
 
-        $cart = $this->cartService->get(
-            $userId,
-            $guestToken
-        );
-
-        return (new CartResource($cart))
-            ->response()
-            ->setStatusCode(200);
+        return (new CartResource($cart))->response()->setStatusCode(200);
     }
 
-
-    public function store(
-        StoreCartItemRequest $request
-    ): JsonResource {
+    public function store(StoreCartItemRequest $request): JsonResource
+    {
         [$userId, $guestToken] = $this->identity($request);
         $data = $request->validated();
 
         return new CartResource(
-            $this->cartService->add(
-                $userId,
-                $guestToken,
-                $data['product_id'],
-                $data['quantity']
-            )
+            $this->cartService->add($userId, $guestToken, $data['product_id'], $data['quantity'])
         );
     }
 
-    public function update(
-        UpdateCartItemRequest $request,
-        int $item
-    ): JsonResource {
+    public function update(UpdateCartItemRequest $request, int $item): JsonResource
+    {
         [$userId, $guestToken] = $this->identity($request);
         $data = $request->validated();
 
         return new CartResource(
-            $this->cartService->update(
-                $userId,
-                $guestToken,
-                $item,
-                $data['quantity']
-            )
+            $this->cartService->update($userId, $guestToken, $item, $data['quantity'])
         );
     }
 
-    public function destroy(
-        Request $request,
-        int $item
-    ): JsonResource {
+    public function destroy(Request $request, int $item): JsonResource
+    {
         [$userId, $guestToken] = $this->identity($request);
 
         return new CartResource(
-            $this->cartService->remove(
-                $userId,
-                $guestToken,
-                $item
-            )
+            $this->cartService->remove($userId, $guestToken, $item)
         );
     }
 }

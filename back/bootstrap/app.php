@@ -17,19 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
 
         $middleware->redirectGuestsTo(
-            fn (Request $request) => $request->is('api/*')
-                ? null
-                : '/login.html'
+            fn (Request $request) => $request->is('api/*') ? null : '/login.html'
         );
 
-        $middleware->alias([
-            'admin' => AdminMiddleware::class,
-        ]);
+        $middleware->alias(['admin' => AdminMiddleware::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) =>
-                $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson()
         );
     })
     ->create();

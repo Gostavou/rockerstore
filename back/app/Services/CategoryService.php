@@ -38,14 +38,12 @@ class CategoryService
         $category->name = $name;
         $category->slug = $slug;
         $category->save();
+
         return $category;
     }
 
-
-    public function update(
-        Category $category,
-        array $data
-    ): Category {
+    public function update(Category $category, array $data): Category
+    {
         $name = Str::squish($data['name']);
         $slug = Str::slug($name);
 
@@ -69,9 +67,9 @@ class CategoryService
         $category->name = $name;
         $category->slug = $slug;
         $category->save();
+
         return $category;
     }
-
 
     public function delete(Category $category): void
     {
@@ -86,6 +84,4 @@ class CategoryService
 
         $category->delete();
     }
-
-
 }

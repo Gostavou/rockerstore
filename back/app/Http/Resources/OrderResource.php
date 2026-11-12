@@ -10,8 +10,7 @@ class OrderResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'user_id' => $this->user_id,
+            'id' => $this->id, 'user_id' => $this->user_id,
             'address_id' => $this->address_id,
             'address_snapshot' => $this->address_snapshot,
             'subtotal_cents' => $this->subtotal_cents,
@@ -24,8 +23,7 @@ class OrderResource extends JsonResource
             'items' => $this->whenLoaded(
                 'items',
                 fn () => $this->items->map(fn ($item) => [
-                    'id' => $item->id,
-                    'product_id' => $item->product_id,
+                    'id' => $item->id, 'product_id' => $item->product_id,
                     'product_name' => $item->product_name,
                     'category_name' => $item->product?->category?->name,
                     'unit_price_cents' => $item->unit_price_cents,

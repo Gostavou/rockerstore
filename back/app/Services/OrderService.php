@@ -14,14 +14,9 @@ class OrderService
 {
     private const SHIPPING_CENTS = 1500;
 
-    public function createOrder(
-        int $userId,
-        int $addressId
-    ): Order {
-        return DB::transaction(function () use (
-            $userId,
-            $addressId
-        ): Order {
+    public function createOrder(int $userId, int $addressId): Order
+    {
+        return DB::transaction(function () use ($userId, $addressId): Order {
             $address = Address::query()
                 ->where('user_id', $userId)
                 ->findOrFail($addressId);
@@ -68,9 +63,7 @@ class OrderService
                     ]);
                 }
 
-                $lineTotal = $product->price_cents
-                    * $cartItem->quantity;
-
+                $lineTotal = $product->price_cents * $cartItem->quantity;
                 $subtotal += $lineTotal;
 
                 $items[] = [
@@ -89,14 +82,8 @@ class OrderService
                 'user_id' => $userId,
                 'address_id' => $address->id,
                 'address_snapshot' => $address->only([
-                    'recipient_name',
-                    'zip_code',
-                    'street',
-                    'number',
-                    'complement',
-                    'district',
-                    'city',
-                    'state',
+                    'recipient_name', 'zip_code', 'street', 'number',
+                    'complement', 'district', 'city', 'state',
                 ]),
                 'subtotal_cents' => $subtotal,
                 'shipping_cents' => $shipping,
@@ -113,10 +100,7 @@ class OrderService
                     'subtotal_cents' => $item['subtotal_cents'],
                 ]);
 
-                $item['product']->decrement(
-                    'stock_quantity',
-                    $item['quantity']
-                );
+                $item['product']->decrement('stock_quantity', $item['quantity']);
             }
 
             $cart->items()->delete();
@@ -124,7 +108,6 @@ class OrderService
             return $order->load('items');
         }, 3);
     }
-
 
     public function listForUser(int $userId): LengthAwarePaginator
     {
@@ -134,9 +117,8 @@ class OrderService
             ->paginate(10);
     }
 
-    public function listForAdmin(
-        ?string $status = null
-    ): LengthAwarePaginator {
+    public function listForAdmin(?string $status = null): LengthAwarePaginator
+    {
         return Order::query()
             ->with('user')
             ->when(
@@ -147,11 +129,8 @@ class OrderService
             ->paginate(15);
     }
 
-    public function showOrder(
-        int $orderId,
-        int $actorId,
-        bool $isAdmin = false
-    ): Order {
+    public function showOrder(int $orderId, int $actorId, bool $isAdmin = false): Order
+    {
         $order = Order::query()->findOrFail($orderId);
 
         abort_if(
@@ -161,20 +140,13 @@ class OrderService
         );
 
         return $order->load(
-            $isAdmin
-        ? ['items.product.category', 'user']
-        : ['items.product.category']
+            $isAdmin ? ['items.product.category', 'user'] : ['items.product.category']
         );
     }
 
-    private function lockedOrder(
-        int $orderId,
-        int $actorId,
-        bool $isAdmin
-    ): Order {
-        $order = Order::query()
-            ->lockForUpdate()
-            ->findOrFail($orderId);
+    private function lockedOrder(int $orderId, int $actorId, bool $isAdmin): Order
+    {
+        $order = Order::query()->lockForUpdate()->findOrFail($orderId);
 
         abort_if(
             !$isAdmin && (int) $order->user_id !== $actorId,
@@ -185,21 +157,10 @@ class OrderService
         return $order;
     }
 
-    public function payOrder(
-        int $orderId,
-        int $actorId,
-        bool $isAdmin = false
-    ): Order {
-        return DB::transaction(function () use (
-            $orderId,
-            $actorId,
-            $isAdmin
-        ): Order {
-            $order = $this->lockedOrder(
-                $orderId,
-                $actorId,
-                $isAdmin
-            );
+    public function payOrder(int $orderId, int $actorId, bool $isAdmin = false): Order
+    {
+        return DB::transaction(function () use ($orderId, $actorId, $isAdmin): Order {
+            $order = $this->lockedOrder($orderId, $actorId, $isAdmin);
 
             abort_if(
                 $order->status !== 'aguardando_pagamento',
@@ -216,21 +177,10 @@ class OrderService
         }, 3);
     }
 
-    public function cancelOrder(
-        int $orderId,
-        int $actorId,
-        bool $isAdmin = false
-    ): Order {
-        return DB::transaction(function () use (
-            $orderId,
-            $actorId,
-            $isAdmin
-        ): Order {
-            $order = $this->lockedOrder(
-                $orderId,
-                $actorId,
-                $isAdmin
-            );
+    public function cancelOrder(int $orderId, int $actorId, bool $isAdmin = false): Order
+    {
+        return DB::transaction(function () use ($orderId, $actorId, $isAdmin): Order {
+            $order = $this->lockedOrder($orderId, $actorId, $isAdmin);
 
             abort_if(
                 $order->status !== 'aguardando_pagamento',
@@ -238,9 +188,7 @@ class OrderService
                 'Somente pedidos aguardando pagamento podem ser cancelados.'
             );
 
-            $items = $order->items()
-                ->orderBy('product_id')
-                ->get();
+            $items = $order->items()->orderBy('product_id')->get();
 
             foreach ($items as $item) {
                 $product = Product::withTrashed()
@@ -248,31 +196,19 @@ class OrderService
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                $product->increment(
-                    'stock_quantity',
-                    $item->quantity
-                );
+                $product->increment('stock_quantity', $item->quantity);
             }
 
-            $order->update([
-                'status' => 'cancelado',
-            ]);
+            $order->update(['status' => 'cancelado']);
 
             return $order->load('items');
         }, 3);
     }
 
-    public function updateStatus(
-        int $orderId,
-        string $newStatus
-    ): Order {
-        return DB::transaction(function () use (
-            $orderId,
-            $newStatus
-        ): Order {
-            $order = Order::query()
-                ->lockForUpdate()
-                ->findOrFail($orderId);
+    public function updateStatus(int $orderId, string $newStatus): Order
+    {
+        return DB::transaction(function () use ($orderId, $newStatus): Order {
+            $order = Order::query()->lockForUpdate()->findOrFail($orderId);
 
             $allowedNextStatus = match ($order->status) {
                 'pago' => 'enviado',
@@ -286,12 +222,9 @@ class OrderService
                 'Transição de status não permitida.'
             );
 
-            $order->update([
-                'status' => $newStatus,
-            ]);
+            $order->update(['status' => $newStatus]);
 
             return $order->load('items');
         }, 3);
     }
-
 }

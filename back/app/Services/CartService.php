@@ -10,10 +10,8 @@ use LogicException;
 
 class CartService
 {
-    private function resolveCart(
-        ?int $userId,
-        ?string $guestToken
-    ): Cart {
+    private function resolveCart(?int $userId, ?string $guestToken): Cart
+    {
         if ($userId !== null) {
             return Cart::firstOrCreate(
                 ['user_id' => $userId],
@@ -22,9 +20,7 @@ class CartService
         }
 
         if ($guestToken === null) {
-            throw new LogicException(
-                'Identificação do carrinho não informada.'
-            );
+            throw new LogicException('Identificação do carrinho não informada.');
         }
 
         return Cart::firstOrCreate(
@@ -33,37 +29,20 @@ class CartService
         );
     }
 
-    public function get(
-        ?int $userId,
-        ?string $guestToken
-    ): Cart {
-        return $this->resolveCart(
-            $userId,
-            $guestToken
-        )->load('items.product');
+    public function get(?int $userId, ?string $guestToken): Cart
+    {
+        return $this->resolveCart($userId, $guestToken)->load('items.product');
     }
 
-    public function add(
-        ?int $userId,
-        ?string $guestToken,
-        int $productId,
-        int $quantity
-    ): Cart {
-        DB::transaction(function () use (
-            $userId,
-            $guestToken,
-            $productId,
-            $quantity
-        ) {
+    public function add(?int $userId, ?string $guestToken, int $productId, int $quantity): Cart
+    {
+        DB::transaction(function () use ($userId, $guestToken, $productId, $quantity) {
             $product = Product::query()
                 ->where('is_active', true)
                 ->lockForUpdate()
                 ->findOrFail($productId);
 
-            $cart = $this->resolveCart(
-                $userId,
-                $guestToken
-            );
+            $cart = $this->resolveCart($userId, $guestToken);
 
             $item = $cart->items()
                 ->where('product_id', $productId)
@@ -74,16 +53,12 @@ class CartService
 
             if ($newQuantity > $product->stock_quantity) {
                 throw ValidationException::withMessages([
-                    'quantity' => [
-                        'Quantidade solicitada maior que o estoque disponível.',
-                    ],
+                    'quantity' => ['Quantidade solicitada maior que o estoque disponível.'],
                 ]);
             }
 
             if ($item) {
-                $item->update([
-                    'quantity' => $newQuantity,
-                ]);
+                $item->update(['quantity' => $newQuantity]);
             } else {
                 $cart->items()->create([
                     'product_id' => $productId,
@@ -95,22 +70,10 @@ class CartService
         return $this->get($userId, $guestToken);
     }
 
-    public function update(
-        ?int $userId,
-        ?string $guestToken,
-        int $itemId,
-        int $quantity
-    ): Cart {
-        DB::transaction(function () use (
-            $userId,
-            $guestToken,
-            $itemId,
-            $quantity
-        ) {
-            $cart = $this->resolveCart(
-                $userId,
-                $guestToken
-            );
+    public function update(?int $userId, ?string $guestToken, int $itemId, int $quantity): Cart
+    {
+        DB::transaction(function () use ($userId, $guestToken, $itemId, $quantity) {
+            $cart = $this->resolveCart($userId, $guestToken);
 
             $item = $cart->items()
                 ->whereKey($itemId)
@@ -129,34 +92,20 @@ class CartService
 
             if ($quantity > $product->stock_quantity) {
                 throw ValidationException::withMessages([
-                    'quantity' => [
-                        'Quantidade solicitada maior que o estoque disponível.',
-                    ],
+                    'quantity' => ['Quantidade solicitada maior que o estoque disponível.'],
                 ]);
             }
 
-            $item->update([
-                'quantity' => $quantity,
-            ]);
+            $item->update(['quantity' => $quantity]);
         });
 
         return $this->get($userId, $guestToken);
     }
 
-    public function remove(
-        ?int $userId,
-        ?string $guestToken,
-        int $itemId
-    ): Cart {
-        DB::transaction(function () use (
-            $userId,
-            $guestToken,
-            $itemId
-        ) {
-            $cart = $this->resolveCart(
-                $userId,
-                $guestToken
-            );
+    public function remove(?int $userId, ?string $guestToken, int $itemId): Cart
+    {
+        DB::transaction(function () use ($userId, $guestToken, $itemId) {
+            $cart = $this->resolveCart($userId, $guestToken);
 
             $cart->items()
                 ->whereKey($itemId)
@@ -167,24 +116,15 @@ class CartService
         return $this->get($userId, $guestToken);
     }
 
-
-    public function mergeGuestCart(
-        int $userId,
-        ?string $guestToken
-    ): array {
+    public function mergeGuestCart(int $userId, ?string $guestToken): array
+    {
         if ($guestToken === null) {
             return [];
         }
 
-        return DB::transaction(function () use (
-            $userId,
-            $guestToken
-        ): array {
+        return DB::transaction(function () use ($userId, $guestToken): array {
             $guestCart = Cart::query()
-                ->where(
-                    'guest_token_hash',
-                    hash('sha256', $guestToken)
-                )
+                ->where('guest_token_hash', hash('sha256', $guestToken))
                 ->lockForUpdate()
                 ->first();
 
@@ -203,26 +143,18 @@ class CartService
                 ->firstOrFail();
 
             $warnings = [];
-
-            $guestItems = $guestCart->items()
-                ->orderBy('product_id')
-                ->get();
+            $guestItems = $guestCart->items()->orderBy('product_id')->get();
 
             foreach ($guestItems as $guestItem) {
                 $product = Product::query()
                     ->lockForUpdate()
                     ->find($guestItem->product_id);
 
-                if (
-                    $product === null ||
-                    !$product->is_active ||
-                    $product->stock_quantity === 0
-                ) {
+                if ($product === null || !$product->is_active || $product->stock_quantity === 0) {
                     $warnings[] = [
                         'product_id' => $guestItem->product_id,
                         'message' => 'Produto indisponível. Item não transferido.',
                     ];
-
                     continue;
                 }
 
@@ -232,14 +164,8 @@ class CartService
                     ->first();
 
                 $currentQuantity = $userItem?->quantity ?? 0;
-
-                $requestedQuantity = $currentQuantity
-                    + $guestItem->quantity;
-
-                $finalQuantity = min(
-                    $requestedQuantity,
-                    $product->stock_quantity
-                );
+                $requestedQuantity = $currentQuantity + $guestItem->quantity;
+                $finalQuantity = min($requestedQuantity, $product->stock_quantity);
 
                 if ($finalQuantity < $requestedQuantity) {
                     $warnings[] = [
@@ -251,9 +177,7 @@ class CartService
                 }
 
                 if ($userItem) {
-                    $userItem->update([
-                        'quantity' => $finalQuantity,
-                    ]);
+                    $userItem->update(['quantity' => $finalQuantity]);
                 } else {
                     $userCart->items()->create([
                         'product_id' => $product->id,
@@ -267,5 +191,4 @@ class CartService
             return $warnings;
         }, 3);
     }
-
 }

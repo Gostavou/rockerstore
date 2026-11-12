@@ -8,10 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cart extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'guest_token_hash',
-    ];
+    protected $fillable = ['user_id', 'guest_token_hash'];
 
     public function user(): BelongsTo
     {
