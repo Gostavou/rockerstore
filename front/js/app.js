@@ -1,4 +1,5 @@
 import './header.js';
+import { createFavoriteButton } from './favorites.js';
 
 const productList = document.querySelector('#productList');
 const message = document.querySelector('#message');
@@ -153,6 +154,7 @@ async function loadCategories() {
     }
 }
 
+
 function createProductCard(product) {
     const column = createElement(
         'div', '', 'col-sm-6 col-lg-4 col-xl-3'
@@ -163,6 +165,7 @@ function createProductCard(product) {
     );
 
     const image = createProductImage(product);
+
     const content = createElement(
         'div', '', 'product-content'
     );
@@ -184,6 +187,7 @@ function createProductCard(product) {
     );
 
     productLink.href = `/product.html?id=${product.id}`;
+
     name.appendChild(productLink);
 
     const price = createElement(
@@ -197,8 +201,18 @@ function createProductCard(product) {
     const stock = createElement(
         'p',
         inStock ? 'Disponível' : 'Sem estoque',
-        'product-stock'
+        'product-stock mb-0'
     );
+
+    const favoriteButton = createFavoriteButton(product.id);
+
+    const stockRow = createElement(
+        'div',
+        '',
+        'd-flex align-items-center justify-content-between gap-2 mb-3'
+    );
+
+    stockRow.append(stock, favoriteButton);
 
     const button = createElement(
         'button',
@@ -219,12 +233,20 @@ function createProductCard(product) {
         }
     });
 
-    content.append(category, name, price, stock, button);
+    content.append(
+        category,
+        name,
+        price,
+        stockRow,
+        button
+    );
+
     card.append(image, content);
     column.appendChild(card);
 
     return column;
 }
+
 
 async function loadProducts() {
     productList.replaceChildren();

@@ -992,7 +992,7 @@ hr {
 }
 
 .theme-toggle:hover .theme-icon {
-    transform: rotate(25deg);
+    transform: rotate(85deg);
 }
 
 .theme-icon-moon,
@@ -1236,5 +1236,118 @@ hr {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+    }
+}
+
+
+.favorite-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: var(--rock-surface);
+    border: 1px solid var(--rock-border);
+    border-radius: 50%;
+    color: var(--rock-gray);
+    box-shadow: var(--rock-shadow);
+    cursor: pointer;
+    transition:
+        color var(--rock-transition),
+        border-color var(--rock-transition),
+        background-color var(--rock-transition),
+        transform var(--rock-transition);
+}
+
+.favorite-button svg {
+    width: 21px;
+    height: 21px;
+}
+
+.favorite-button:hover {
+    color: var(--rock-red);
+    border-color: var(--rock-red);
+    transform: scale(1.08);
+}
+
+.favorite-button.is-active {
+    color: var(--rock-red);
+    border-color: var(--rock-red);
+}
+
+.favorite-button.is-active svg {
+    fill: currentColor;
+}
+
+.favorite-button:focus-visible {
+    outline: 2px solid var(--rock-red);
+    outline-offset: 3px;
+}
+
+.favorite-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.favorite-button-inline {
+    margin-bottom: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .favorite-button {
+        transition: none;
+    }
+}
+
+.favorite-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--rock-muted);
+    cursor: pointer;
+    transition:
+        color var(--rock-transition),
+        transform var(--rock-transition);
+}
+
+.favorite-button svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+    fill: none;
+}
+
+.favorite-button:hover {
+    color: var(--rock-red);
+}
+
+.favorite-button.is-active {
+    color: var(--rock-red);
+}
+
+.favorite-button.is-active svg {
+    fill: currentColor;
+}
+
+.favorite-button:focus-visible {
+    outline: 2px solid var(--rock-red);
+    outline-offset: 3px;
+}
+
+.favorite-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .favorite-button {
+        transition: none;
     }
 }

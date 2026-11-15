@@ -1,4 +1,6 @@
 import './header.js';
+import { createFavoriteButton } from './favorites.js';
+
 const productPanel = document.querySelector('#productPanel');
 const productMessage = document.querySelector('#productMessage');
 const productLoading = document.querySelector('#productLoading');
@@ -138,6 +140,7 @@ function renderProductImage(product) {
     productVisual.appendChild(image);
 }
 
+
 function renderProduct(product) {
     currentProduct = product;
 
@@ -162,8 +165,23 @@ function renderProduct(product) {
         : 'Produto indisponível';
 
     productStock.className = available
-        ? 'text-success mb-4'
-        : 'text-danger mb-4';
+        ? 'text-success mb-0'
+        : 'text-danger mb-0';
+
+    const stockRow = createElement(
+        'div',
+        '',
+        'd-flex align-items-center justify-content-between gap-3 mb-4'
+    );
+
+    const favoriteButton = createFavoriteButton(product.id);
+
+    productStock.replaceWith(stockRow);
+
+    stockRow.append(
+        productStock,
+        favoriteButton
+    );
 
     productQuantity.value = '1';
     productQuantity.max = String(stock);
@@ -173,6 +191,7 @@ function renderProduct(product) {
     viewCartLink.classList.add('d-none');
     productPanel.classList.remove('d-none');
 }
+
 
 async function loadProduct() {
     const id = new URLSearchParams(

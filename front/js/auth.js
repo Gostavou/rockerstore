@@ -1,6 +1,4 @@
-
 import './header.js';
-
 
 const loginForm = document.querySelector('#loginForm');
 const registerForm = document.querySelector('#registerForm');
@@ -12,8 +10,7 @@ const userWelcome = document.querySelector('#userWelcome');
 const logoutButton = document.querySelector('#logoutButton');
 const adminLink = document.querySelector('#adminLink');
 const accountLink = document.querySelector('#accountLink');
-
-
+const favoritesLink = document.querySelector('#favoritesLink');
 
 function setAuthMessage(text, type = 'danger') {
     if (!authMessage) return;
@@ -106,7 +103,8 @@ function getDestination() {
         '/checkout.html',
         '/orders.html',
         '/account.html',
-        '/admin/'
+        '/admin/',
+        '/favorites.html'
     ];
 
     return allowed.includes(next) ? next : '/';
@@ -244,9 +242,12 @@ async function loadSession() {
         userWelcome.classList.remove('d-none');
         logoutButton.classList.remove('d-none');
 
- 
         if (accountLink) {
             accountLink.classList.remove('d-none');
+        }
+
+        if (favoritesLink) {
+            favoritesLink.classList.remove('d-none');
         }
 
         if (adminLink && user.role === 'admin') {
@@ -262,7 +263,6 @@ async function loadSession() {
         }
     }
 }
-
 
 async function logout() {
     if (!logoutButton) return;
@@ -283,7 +283,6 @@ async function logout() {
     }
 }
 
-
 function bindEvents() {
     if (loginForm) {
         loginForm.addEventListener('submit', event => {
@@ -301,7 +300,6 @@ function bindEvents() {
         logoutButton.addEventListener('click', logout);
     }
 }
-
 
 function initializeAuth() {
     bindEvents();

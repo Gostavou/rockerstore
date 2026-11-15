@@ -65,6 +65,13 @@ if (currentHeader) {
                             Meus pedidos
                         </a>
 
+                        <a id="favoritesLink"
+                           class="nav-link d-none"
+                           data-nav="favorites"
+                           href="/favorites.html">
+                            Favoritos
+                        </a>
+
                         <a id="accountLink"
                            class="nav-link d-none"
                            data-nav="account"
@@ -193,6 +200,8 @@ if (currentHeader) {
         activePage = 'cart';
     } else if (path === '/orders.html') {
         activePage = 'orders';
+    } else if (path === '/favorites.html') {
+        activePage = 'favorites';
     } else if (path === '/account.html') {
         activePage = 'account';
     } else if (path.startsWith('/admin/')) {

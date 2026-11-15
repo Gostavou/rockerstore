@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AccountController;
+use App\Http\Controllers\Api\FavoriteController;
 
 // ROTAS PÚBLICAS
 
@@ -133,6 +134,21 @@ Route::middleware('auth:sanctum')->group(function () {
         'destroy',
     ])->whereNumber('address');
 
+
+    Route::get('/favorites', [
+        FavoriteController::class,
+        'index',
+    ]);
+
+    Route::post('/favorites', [
+        FavoriteController::class,
+        'store',
+    ]);
+
+    Route::delete('/favorites/{product}', [
+        FavoriteController::class,
+        'destroy',
+    ])->whereNumber('product');
 
     // ROTAS ADMINISTRATIVAS
 

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus favoritos | RockerStore</title>
+
+    <link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+    <script type="module" src="/js/auth.js"></script>
+    <script type="module" src="/js/favorites-page.js"></script>
+</head>
+
+<body>
+    <header class="site-header sticky-top"></header>
+
+    <main class="container py-5">
+        <div class="mb-4">
+            <p class="hero-label mb-2">ROCKERSTORE</p>
+            <h1 class="fw-bold">Meus favoritos</h1>
+            <p class="text-secondary">
+                Seus instrumentos preferidos em um só lugar.
+            </p>
+        </div>
+
+        <div id="favoriteMessage"
+             class="text-secondary mb-3"
+             role="status"
+             aria-live="polite">
+            Carregando favoritos...
+        </div>
+
+        <div id="favoriteList" class="row g-4"></div>
+    </main>
+
+    <footer class="footer py-4">
+        <div class="container">
+            <div class="row align-items-center gy-3">
+                <div class="col-md-6 text-center text-md-start">
+                    <a href="/" class="footer-logo">
+                        ROCKER<span>STORE</span>
+                    </a>
+
+                    <p class="footer-description mb-0 mt-2">
+                        Instrumentos para quem vive a música.
+                    </p>
+                </div>
+
+                <div class="col-md-6">
+                    <nav class="footer-links justify-content-center justify-content-md-end">
+                        <a href="/">Início</a>
+                        <a href="/#catalogo">Produtos</a>
+                        <a href="/cart.html">Carrinho</a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="footer-bottom text-center">
+                <small>RockerStore &copy; 2026</small>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
