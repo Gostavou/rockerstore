@@ -62,28 +62,28 @@ if (currentHeader) {
                         </a>
 
                         <a class="nav-link header-nav-link"
-                           data-nav="orders" href="/orders.html">
+                           data-nav="orders" href="/pages/orders/orders.html">
                             ${icons.orders}
                             <span>Meus pedidos</span>
                         </a>
 
                         <a id="favoritesLink"
                            class="nav-link header-nav-link d-none"
-                           data-nav="favorites" href="/favorites.html">
+                           data-nav="favorites" href="/pages/favorites/favorites.html">
                             ${icons.favorites}
                             <span>Favoritos</span>
                         </a>
 
                         <a id="accountLink"
                            class="nav-link header-nav-link d-none"
-                           data-nav="account" href="/account.html">
+                           data-nav="account" href="/pages/account/account.html">
                             ${icons.account}
                             <span>Minha conta</span>
                         </a>
 
                         <a id="adminLink"
                            class="nav-link header-nav-link d-none"
-                           data-nav="admin" href="/admin/">
+                           data-nav="admin" href="/pages/admin/index.html">
                             ${icons.admin}
                             <span>Painel</span>
                         </a>
@@ -92,13 +92,13 @@ if (currentHeader) {
                     <div class="header-auth-links">
                         <a id="loginLink"
                            class="nav-link header-auth-link"
-                           href="/login.html">
+                           href="/pages/auth/login.html">
                             Entrar
                         </a>
 
                         <a id="registerLink"
                            class="nav-link header-register-link"
-                           href="/register.html">
+                           href="/pages/auth/register.html">
                             Criar conta
                         </a>
 
@@ -110,7 +110,7 @@ if (currentHeader) {
                 <div class="header-actions order-2 order-xl-3 ms-auto ms-xl-0">
                     <a id="headerCartLink"
                        class="header-icon-action header-cart-link"
-                       href="/cart.html"
+                       href="/pages/cart/cart.html"
                        data-nav="cart"
                        aria-label="Carrinho vazio"
                        title="Carrinho">
@@ -201,17 +201,20 @@ if (currentHeader) {
 
     if (path === '/' || path === '/index.html') {
         activePage = 'home';
-    } else if (path === '/product.html') {
+    } else if (path === '/pages/product/product.html') {
         activePage = 'products';
-    } else if (path === '/cart.html' || path === '/checkout.html') {
+    } else if (
+        path === '/pages/cart/cart.html' ||
+        path === '/pages/checkout/checkout.html'
+    ) {
         activePage = 'cart';
-    } else if (path === '/orders.html') {
+    } else if (path === '/pages/orders/orders.html') {
         activePage = 'orders';
-    } else if (path === '/favorites.html') {
+    } else if (path === '/pages/favorites/favorites.html') {
         activePage = 'favorites';
-    } else if (path === '/account.html') {
+    } else if (path === '/pages/account/account.html') {
         activePage = 'account';
-    } else if (path.startsWith('/admin/')) {
+    } else if (path === '/pages/admin/index.html') {
         activePage = 'admin';
     }
 
@@ -300,7 +303,7 @@ if (siteFooter) {
                     <nav class="footer-links justify-content-center justify-content-md-end">
                         <a href="/">Início</a>
                         <a href="/#catalogo">Produtos</a>
-                        <a href="/cart.html">Carrinho</a>
+                        <a href="/pages/cart/cart.html">Carrinho</a>
                     </nav>
                 </div>
             </div>

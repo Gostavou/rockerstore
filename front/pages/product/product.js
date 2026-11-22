@@ -1,7 +1,7 @@
-import './header.js';
-import { createFavoriteButton } from './favorites.js';
-import { createRatingSummary } from './rating.js';
-import { initializeReviews } from './reviews.js';
+import '../../components/header.js';
+import { createFavoriteButton } from '../../components/favorites.js';
+import { createRatingSummary } from '../../components/rating.js';
+import { initializeReviews } from '../../components/reviews.js';
 
 const productPanel = document.querySelector('#productPanel');
 const productMessage = document.querySelector('#productMessage');

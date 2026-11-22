@@ -1,5 +1,5 @@
-import './auth.js';
-import { bindCepLookup } from './cep.js';
+import '../../js/auth.js';
+import { bindCepLookup } from '../../js/cep.js';
 
 const $ = selector => document.querySelector(selector);
 const checkoutMessage = $('#checkoutMessage');
@@ -303,7 +303,7 @@ async function createOrder(event) {
         window.history.replaceState(
             {},
             '',
-            `/checkout.html?order=${order.id}`
+            `/pages/checkout/checkout.html?order=${order.id}`
         );
 
         renderOrder(order);

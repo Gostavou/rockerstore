@@ -1,4 +1,4 @@
-import './header.js';
+import '../../components/header.js';
 
 const $ = selector => document.querySelector(selector);
 const ordersList = $('#ordersList');

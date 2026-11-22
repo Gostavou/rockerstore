@@ -154,7 +154,7 @@ export function createFavoriteButton(productId) {
 
             if (!authenticated) {
                 window.location.assign(
-                    '/login.html?next=/favorites.html'
+                    '/pages/auth/login.html?next=/pages/favorites/favorites.html'
                 );
 
                 return;
@@ -213,7 +213,7 @@ export async function getFavoriteProducts() {
 
     if (!authenticated) {
         window.location.assign(
-            '/login.html?next=/favorites.html'
+            '/pages/auth/login.html?next=/pages/favorites/favorites.html'
         );
 
         return null;

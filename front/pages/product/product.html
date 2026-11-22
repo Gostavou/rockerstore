@@ -8,11 +8,12 @@
     <title>Detalhes do produto | RockerStore</title>
 
     <link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/pages/product/product.css">
 
     <script src="/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
     <script type="module" src="/js/auth.js"></script>
-    <script type="module" src="/js/product.js"></script>
+    <script type="module" src="/pages/product/product.js"></script>
 </head>
 
 <body>
@@ -25,7 +26,6 @@
                class="btn btn-outline-light btn-sm mb-4">
                 Voltar ao catálogo
             </a>
-
 
             <h1 class="fw-bold">
                 Detalhes do produto
@@ -41,33 +41,32 @@
             Carregando produto...
         </p>
 
-        
         <section id="productPanel"
-                class="d-none"
-                aria-label="Informações do produto">
+                 class="d-none"
+                 aria-label="Informações do produto">
 
             <div class="product-detail-grid">
 
                 <div id="productVisual"
-                    class="product-image product-detail-visual rounded-3"
-                    aria-label="Imagem do produto"></div>
+                     class="product-image product-detail-visual rounded-3"
+                     aria-label="Imagem do produto"></div>
 
                 <div class="checkout-card product-detail-info">
 
                     <p id="productCategory"
-                    class="product-category mb-2"></p>
+                       class="product-category mb-2"></p>
 
                     <h2 id="productName"
                         class="fw-bold mb-3"></h2>
 
                     <p id="productPrice"
-                    class="product-price mb-3"></p>
+                       class="product-price mb-3"></p>
 
                     <div id="productRating"
-                        class="mb-3"></div>
+                         class="mb-3"></div>
 
                     <p id="productStock"
-                    class="product-stock mb-4"></p>
+                       class="product-stock mb-4"></p>
 
                     <hr>
 
@@ -76,22 +75,22 @@
                     </h3>
 
                     <p id="productDescription"
-                    class="text-secondary mb-4"></p>
+                       class="text-secondary mb-4"></p>
 
                     <form id="addCartForm">
 
                         <label for="productQuantity"
-                            class="form-label">
+                               class="form-label">
                             Quantidade
                         </label>
 
                         <input id="productQuantity"
-                            type="number"
-                            class="form-control mb-3"
-                            min="1"
-                            step="1"
-                            value="1"
-                            required>
+                               type="number"
+                               class="form-control mb-3"
+                               min="1"
+                               step="1"
+                               value="1"
+                               required>
 
                         <button id="addToCartButton"
                                 type="submit"
@@ -103,8 +102,8 @@
                     </form>
 
                     <a id="viewCartLink"
-                    href="/cart.html"
-                    class="btn btn-outline-light w-100 mt-3 d-none">
+                       href="/pages/cart/cart.html"
+                       class="btn btn-outline-light w-100 mt-3 d-none">
                         Ver carrinho
                     </a>
 
@@ -113,7 +112,6 @@
             </div>
 
         </section>
-
 
         <section id="reviewsPanel"
                  class="mt-5 d-none"

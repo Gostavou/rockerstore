@@ -98,7 +98,7 @@ export function initializeReviews(product, apiRequest) {
                 'btn btn-outline-light btn-sm'
             );
 
-            link.href = '/login.html';
+            link.href = '/pages/auth/login.html';
 
             eligibility.append(text, link);
             return;

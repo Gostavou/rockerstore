@@ -1,6 +1,6 @@
-import './header.js';
-import { createFavoriteButton } from './favorites.js';
-import { createRatingSummary } from './rating.js';
+import '../../components/header.js';
+import { createFavoriteButton } from '../../components/favorites.js';
+import { createRatingSummary } from '../../components/rating.js';
 
 const productList = document.querySelector('#productList');
 const message = document.querySelector('#message');
@@ -187,7 +187,7 @@ function createProductCard(product) {
         'stretched-link text-decoration-none text-white'
     );
 
-    productLink.href = `/product.html?id=${product.id}`;
+    productLink.href = `/pages/product/product.html?id=${product.id}`;
 
     name.appendChild(productLink);
 

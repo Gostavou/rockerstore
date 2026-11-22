@@ -1,4 +1,4 @@
-import './header.js';
+import '../components/header.js';
 
 const loginForm = document.querySelector('#loginForm');
 const registerForm = document.querySelector('#registerForm');
@@ -100,11 +100,11 @@ function getDestination() {
     ).get('next');
 
     const allowed = [
-        '/checkout.html',
-        '/orders.html',
-        '/account.html',
-        '/admin/',
-        '/favorites.html'
+        '/pages/checkout/checkout.html',
+        '/pages/orders/orders.html',
+        '/pages/account/account.html',
+        '/pages/admin/index.html',
+        '/pages/favorites/favorites.html'
     ];
 
     return allowed.includes(next) ? next : '/';

@@ -1,5 +1,5 @@
-import './header.js';
-import { bindCepLookup } from './cep.js';
+import '../../components/header.js';
+import { bindCepLookup } from '../../js/cep.js';
 
 const $ = selector => document.querySelector(selector);
 

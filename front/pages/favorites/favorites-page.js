@@ -1,9 +1,9 @@
-import './header.js';
+import '../../components/header.js';
 
 import {
     createFavoriteButton,
     getFavoriteProducts
-} from './favorites.js';
+} from '../../components/favorites.js';
 
 const favoriteList = document.querySelector('#favoriteList');
 const favoriteMessage = document.querySelector('#favoriteMessage');
@@ -105,7 +105,7 @@ function createFavoriteCard(product) {
         'stretched-link text-decoration-none text-white'
     );
 
-    productLink.href = `/product.html?id=${product.id}`;
+    productLink.href = `/pages/product/product.html?id=${product.id}`;
 
     name.appendChild(productLink);
 
@@ -139,7 +139,7 @@ function createFavoriteCard(product) {
         'btn btn-danger w-100 position-relative z-2'
     );
 
-    viewProduct.href = `/product.html?id=${product.id}`;
+    viewProduct.href = `/pages/product/product.html?id=${product.id}`;
 
     content.append(
         category,

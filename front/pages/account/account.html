@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha conta | RockerStore</title>
     <link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/pages/account/account.css">
+
     <script src="/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
     <script type="module" src="/js/auth.js"></script>
-    <script type="module" src="/js/account.js"></script>
+    <script type="module" src="/pages/account/account.js"></script>
 </head>
 <body>
     <header class="site-header sticky-top"></header>
@@ -21,7 +23,7 @@
         <div id="accountLoginNotice" class="cart-empty d-none text-center">
             <h1 class="h3 mb-3">Faça login para continuar</h1>
             <p>Entre na sua conta para gerenciar seus dados e endereços.</p>
-            <a href="/login.html?next=%2Faccount.html" class="btn btn-danger">
+            <a href="/pages/auth/login.html?next=%2Fpages%2Faccount%2Faccount.html" class="btn btn-danger">
                 Entrar na minha conta
             </a>
         </div>
@@ -186,7 +188,7 @@
                 <nav class="footer-links justify-content-center justify-content-md-end">
                     <a href="/">Início</a>
                     <a href="/#catalogo">Produtos</a>
-                    <a href="/cart.html">Carrinho</a>
+                    <a href="/pages/cart/cart.html">Carrinho</a>
                 </nav>
             </div>
 
