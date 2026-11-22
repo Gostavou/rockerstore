@@ -121,10 +121,6 @@ async function apiRequest(path, options = {}) {
     return result;
 }
 
-/* ========================================
-   DADOS DO USUÁRIO
-======================================== */
-
 async function loadUser() {
     try {
         const user = await apiRequest('user');
@@ -209,10 +205,6 @@ async function saveProfile(event) {
         saveProfileButton.disabled = false;
     }
 }
-
-/* ========================================
-   ENDEREÇOS
-======================================== */
 
 function formatAddress(address) {
     const street = `${address.street}, ${address.number}`;
@@ -486,9 +478,6 @@ async function deleteAddress(addressId) {
     }
 }
 
-/* ========================================
-   INICIALIZAÇÃO
-======================================== */
 
 function bindEvents() {
     profileForm.addEventListener(
