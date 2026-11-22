@@ -73,7 +73,7 @@ class AuthController extends Controller
         if ($guestToken !== null) {
             $this->guestCartSession->forget();
         }
-
+        //retorna pro metodo register/login
         return $warnings;
     }
 }

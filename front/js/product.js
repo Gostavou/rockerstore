@@ -1,5 +1,7 @@
 import './header.js';
 import { createFavoriteButton } from './favorites.js';
+import { createRatingSummary } from './rating.js';
+import { initializeReviews } from './reviews.js';
 
 const productPanel = document.querySelector('#productPanel');
 const productMessage = document.querySelector('#productMessage');
@@ -108,13 +110,12 @@ function updateCartCount(cart) {
     cartCount.textContent = quantity;
 }
 
+
 function renderProductImage(product) {
     productVisual.replaceChildren();
 
     const fallback = () => {
-        productVisual.replaceChildren(
-            createElement('span', '🎸', 'display-1')
-        );
+        productVisual.replaceChildren();
     };
 
     const path = product.image_path?.trim();
@@ -141,6 +142,7 @@ function renderProductImage(product) {
 }
 
 
+
 function renderProduct(product) {
     currentProduct = product;
 
@@ -151,6 +153,14 @@ function renderProduct(product) {
 
     productName.textContent = product.name;
     productPrice.textContent = money(product.price_cents);
+
+
+    document.querySelector('#productRating').replaceChildren(
+        createRatingSummary(
+            product.rating_average,
+            product.rating_count
+        )
+    );
 
     productDescription.textContent =
         product.description || 'Descrição não informada.';
@@ -190,6 +200,8 @@ function renderProduct(product) {
 
     viewCartLink.classList.add('d-none');
     productPanel.classList.remove('d-none');
+
+    initializeReviews(product, apiRequest);
 }
 
 

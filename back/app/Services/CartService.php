@@ -53,6 +53,7 @@ class CartService
 
             if ($newQuantity > $product->stock_quantity) {
                 throw ValidationException::withMessages([
+                    //http 422 Unprocessable Content
                     'quantity' => ['Quantidade solicitada maior que o estoque disponível.'],
                 ]);
             }
@@ -158,6 +159,7 @@ class CartService
                     continue;
                 }
 
+                //Verifica se existe no autenticado
                 $userItem = $userCart->items()
                     ->where('product_id', $guestItem->product_id)
                     ->lockForUpdate()
@@ -187,7 +189,7 @@ class CartService
             }
 
             $guestCart->delete();
-
+            // volta auth.controller
             return $warnings;
         }, 3);
     }

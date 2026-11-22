@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\Review;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
 
@@ -13,9 +15,13 @@ class ProductService
 {
     public function list(array $filters = []): LengthAwarePaginator
     {
+
         $query = Product::query()
             ->with('category')
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
             ->where('is_active', true);
+
 
         if (!empty($filters['search'])) {
             $query->where('name', 'like', '%' . $filters['search'] . '%');
@@ -65,13 +71,47 @@ class ProductService
             ->withQueryString();
     }
 
+
+
     public function getById(int $id): Product
     {
-        return Product::query()
+        $product = Product::query()
             ->with('category')
             ->where('is_active', true)
             ->findOrFail($id);
+
+        $stats = DB::table('reviews')
+            ->where('product_id', $id)
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('AVG(rating) as average')
+            ->selectRaw('SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as stars_1')
+            ->selectRaw('SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as stars_2')
+            ->selectRaw('SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as stars_3')
+            ->selectRaw('SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as stars_4')
+            ->selectRaw('SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as stars_5')
+            ->first();
+
+        $product->setAttribute(
+            'reviews_count',
+            (int) ($stats->total ?? 0)
+        );
+
+        $product->setAttribute(
+            'reviews_avg_rating',
+            (float) ($stats->average ?? 0)
+        );
+
+        $product->setAttribute('review_distribution', [
+            1 => (int) ($stats->stars_1 ?? 0),
+            2 => (int) ($stats->stars_2 ?? 0),
+            3 => (int) ($stats->stars_3 ?? 0),
+            4 => (int) ($stats->stars_4 ?? 0),
+            5 => (int) ($stats->stars_5 ?? 0),
+        ]);
+
+        return $product;
     }
+
 
     public function create(array $data, ?UploadedFile $image = null): Product
     {

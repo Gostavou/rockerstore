@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\CepController;
+use App\Http\Controllers\Api\ReviewController;
 
 // ROTAS PÚBLICAS
 
@@ -40,6 +42,12 @@ Route::get('/products/{product}', [
 ])->whereNumber('product');
 
 
+Route::get('/products/{product}/reviews', [
+    ReviewController::class,
+    'index',
+])->whereNumber('product');
+
+
 // CARRINHO DE COMPRAS
 
 Route::get('/cart', [
@@ -66,6 +74,28 @@ Route::delete('/cart/items/{item}', [
 // ROTAS AUTENTICADAS
 
 Route::middleware('auth:sanctum')->group(function () {
+
+
+    Route::get('/products/{product}/reviews/me', [
+        ReviewController::class,
+        'me',
+    ])->whereNumber('product');
+
+    Route::post('/products/{product}/reviews', [
+        ReviewController::class,
+        'store',
+    ])->whereNumber('product');
+
+    Route::put('/products/{product}/reviews/me', [
+        ReviewController::class,
+        'update',
+    ])->whereNumber('product');
+
+    Route::delete('/products/{product}/reviews/me', [
+        ReviewController::class,
+        'destroy',
+    ])->whereNumber('product');
+
 
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -113,6 +143,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // ENDEREÇOS DO CLIENTE
+
+    Route::get('/cep/{cep}', [
+        CepController::class,
+        'show',
+    ])->where('cep', '[0-9]{8}');
 
     Route::get('/addresses', [
         AddressController::class,

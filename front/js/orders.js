@@ -8,6 +8,7 @@ const prevButton = $('#prevPage');
 const nextButton = $('#nextPage');
 const payButton = $('#payOrderButton');
 const cancelButton = $('#cancelOrderButton');
+const refreshOrderButton = $('#refreshOrderButton');
 
 const statusLabels = {
     aguardando_pagamento: 'Aguardando pagamento',
@@ -23,6 +24,33 @@ const statusClasses = {
     enviado: 'text-bg-info',
     entregue: 'text-bg-success',
     cancelado: 'text-bg-secondary'
+};
+
+const trackingSteps = [
+    'Pedido realizado',
+    'Pagamento',
+    'Enviado',
+    'Entregue'
+];
+
+const trackingPositions = {
+    aguardando_pagamento: 0,
+    pago: 1,
+    enviado: 2,
+    entregue: 3
+};
+
+const trackingMessages = {
+    aguardando_pagamento:
+        'O pedido foi registrado e está aguardando o pagamento simulado.',
+    pago:
+        'O pagamento foi confirmado. O pedido aguarda o envio.',
+    enviado:
+        'O pedido foi enviado e aguarda a confirmação da entrega.',
+    entregue:
+        'O pedido foi entregue. Todas as etapas foram concluídas.',
+    cancelado:
+        'Este pedido foi cancelado antes do pagamento. O acompanhamento foi encerrado.'
 };
 
 let currentPage = 1;
@@ -124,6 +152,163 @@ function createStatusBadge(status) {
     );
 }
 
+function createOrderProgress(order) {
+    const container = createElement(
+        'div', '', 'order-progress-preview'
+    );
+
+    if (order.status === 'cancelado') {
+        container.appendChild(
+            createElement(
+                'span',
+                'Pedido cancelado — acompanhamento encerrado',
+                'order-progress-cancelled'
+            )
+        );
+        return container;
+    }
+
+    const position = trackingPositions[order.status];
+
+    if (position === undefined) {
+        return container;
+    }
+
+    const label = createElement(
+        'p',
+        `Etapa ${position + 1} de 4 — ${trackingSteps[position]}`,
+        'order-progress-caption'
+    );
+
+    const segments = createElement(
+        'div', '', 'order-progress-segments'
+    );
+
+    segments.setAttribute('role', 'img');
+    segments.setAttribute('aria-label', label.textContent);
+
+    for (let index = 0; index < trackingSteps.length; index++) {
+        const segment = createElement(
+            'span', '', 'order-progress-segment'
+        );
+
+        if (index <= position) {
+            segment.classList.add('is-filled');
+        }
+
+        segments.appendChild(segment);
+    }
+
+    container.append(label, segments);
+    return container;
+}
+
+function renderOrderTracking(order) {
+    const container = $('#orderTracking');
+
+    if (!container) return;
+
+    container.replaceChildren();
+
+    const title = createElement(
+        'h3',
+        'Acompanhamento do pedido',
+        'h5 fw-bold mb-2'
+    );
+
+    const description = createElement(
+        'p',
+        trackingMessages[order.status] ??
+            'Consulte o status atual do pedido.',
+        'order-tracking-description'
+    );
+
+    if (order.status === 'cancelado') {
+        description.classList.add('is-cancelled');
+    }
+
+    container.append(title, description);
+
+    if (order.status === 'cancelado') {
+        const cancelled = createElement(
+            'div',
+            'Pedido cancelado',
+            'order-tracking-cancelled'
+        );
+        container.appendChild(cancelled);
+        return;
+    }
+
+    const currentPosition = trackingPositions[order.status];
+
+    if (currentPosition === undefined) return;
+
+    const delivered = order.status === 'entregue';
+    const steps = createElement(
+        'ol', '', 'order-tracking-steps'
+    );
+
+    for (let index = 0; index < trackingSteps.length; index++) {
+        const step = createElement(
+            'li', '', 'order-tracking-step'
+        );
+
+        const completed = delivered || index < currentPosition;
+        const current = !delivered && index === currentPosition;
+
+        if (completed) {
+            step.classList.add('is-complete');
+        } else if (current) {
+            step.classList.add('is-current');
+            step.setAttribute('aria-current', 'step');
+        }
+
+        const marker = createElement(
+            'span',
+            completed ? '✓' : String(index + 1),
+            'order-tracking-marker'
+        );
+
+        marker.setAttribute('aria-hidden', 'true');
+
+        const content = createElement(
+            'div', '', 'order-tracking-step-content'
+        );
+
+        const label = createElement(
+            'strong', trackingSteps[index],
+            'order-tracking-label'
+        );
+
+        content.appendChild(label);
+
+        if (index === 0 && order.created_at) {
+            content.appendChild(
+                createElement(
+                    'span',
+                    `Criado em ${formatDate(order.created_at)}`,
+                    'order-tracking-date'
+                )
+            );
+        }
+
+        if (index === 1 && order.paid_at) {
+            content.appendChild(
+                createElement(
+                    'span',
+                    `Pago em ${formatDate(order.paid_at)}`,
+                    'order-tracking-date'
+                )
+            );
+        }
+
+        step.append(marker, content);
+        steps.appendChild(step);
+    }
+
+    container.appendChild(steps);
+}
+
 function renderOrders(orders) {
     ordersList.replaceChildren();
 
@@ -140,9 +325,7 @@ function renderOrders(orders) {
 
     for (const order of orders) {
         const card = createElement(
-            'article',
-            '',
-            'order-card mb-3'
+            'article', '', 'order-card mb-3'
         );
 
         const content = createElement(
@@ -167,33 +350,27 @@ function renderOrders(orders) {
             createStatusBadge(order.status)
         );
 
-        const actions = createElement(
-            'div',
-            '',
-            'text-md-end'
-        );
+        const actions = createElement('div', '', 'text-md-end');
 
         const total = createElement(
-            'p',
-            money(order.total_cents),
+            'p', money(order.total_cents),
             'cart-item-total mb-2'
         );
 
         const button = createElement(
-            'button',
-            'Ver detalhes',
+            'button', 'Ver detalhes',
             'btn btn-outline-light btn-sm'
         );
 
         button.type = 'button';
-
         button.addEventListener('click', () => {
             loadOrderDetails(order.id);
         });
 
         actions.append(total, button);
         content.append(info, actions);
-        card.appendChild(content);
+
+        card.append(content, createOrderProgress(order));
         ordersList.appendChild(card);
     }
 }
@@ -245,6 +422,8 @@ function renderDetails(order) {
     $('#detailsDate').textContent =
         `Criado em: ${formatDate(order.created_at)}`;
 
+    renderOrderTracking(order);
+
     $('#detailsAddress').textContent =
         formatAddress(order.address_snapshot);
 
@@ -270,8 +449,7 @@ function renderDetails(order) {
         );
     }
 
-    const pending =
-        order.status === 'aguardando_pagamento';
+    const pending = order.status === 'aguardando_pagamento';
 
     payButton.classList.toggle('d-none', !pending);
     cancelButton.classList.toggle('d-none', !pending);
@@ -320,9 +498,7 @@ async function changeOrder(action) {
 
         await apiRequest(
             `orders/${orderId}/${action}`,
-            {
-                method: 'POST'
-            }
+            { method: 'POST' }
         );
 
         await loadOrders();
@@ -400,6 +576,23 @@ function bindEvents() {
 
     cancelButton.addEventListener('click', () => {
         changeOrder('cancel');
+    });
+
+    refreshOrderButton.addEventListener('click', async () => {
+        if (!currentOrder || busy || refreshOrderButton.disabled) {
+            return;
+        }
+
+        refreshOrderButton.disabled = true;
+
+        try {
+            await loadOrders();
+            await loadOrderDetails(currentOrder.id);
+        } catch (error) {
+            setMessage(error.message);
+        } finally {
+            refreshOrderButton.disabled = false;
+        }
     });
 }
 

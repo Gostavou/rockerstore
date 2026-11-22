@@ -11,29 +11,7 @@
     <script type="module" src="/js/orders.js"></script>
 </head>
 <body>
-    <header class="site-header sticky-top">
-        <nav class="navbar navbar-expand-lg container py-3">
-            <a class="navbar-brand logo" href="/">ROCKER<span>STORE</span></a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarMenu" aria-label="Abrir menu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarMenu">
-                <div class="navbar-nav ms-auto gap-lg-3 align-items-lg-center">
-                    <a class="nav-link" href="/">Início</a>
-                    <a class="nav-link" href="/cart.html">Carrinho</a>
-                    <a class="nav-link active" href="/orders.html">Meus pedidos</a>
-                    <a id="loginLink" class="nav-link" href="/login.html">Entrar</a>
-                    <a id="registerLink" class="nav-link" href="/register.html">Criar conta</a>
-                    <span id="userWelcome" class="nav-link d-none"></span>
-                    <button id="logoutButton" type="button"
-                            class="btn btn-outline-light btn-sm d-none">Sair</button>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <header class="site-header sticky-top"></header>
 
     <main class="container py-5">
         <p class="hero-label">MINHAS COMPRAS</p>
@@ -66,10 +44,21 @@
         <section id="detailsPanel" class="checkout-card d-none mt-5">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                 <h2 id="detailsTitle" class="h3 fw-bold mb-0"></h2>
-                <span id="detailsStatus" class="badge text-bg-secondary"></span>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span id="detailsStatus" class="badge text-bg-secondary"></span>
+                    <button id="refreshOrderButton" type="button"
+                            class="btn btn-outline-light btn-sm">Atualizar status</button>
+                </div>
             </div>
 
             <p id="detailsDate" class="text-secondary"></p>
+
+            <div id="orderTracking"
+                 class="order-tracking mt-4 mb-4"
+                 aria-label="Acompanhamento do pedido"
+                 aria-live="polite"></div>
+
             <h3 class="h5 mt-4">Produtos</h3>
             <ul id="detailsItems" class="list-unstyled"></ul>
 

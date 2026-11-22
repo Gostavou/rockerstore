@@ -66,6 +66,7 @@ class OrderService
                 $lineTotal = $product->price_cents * $cartItem->quantity;
                 $subtotal += $lineTotal;
 
+                //dados temporarios
                 $items[] = [
                     'product_id' => $product->id,
                     'product_name' => $product->name,

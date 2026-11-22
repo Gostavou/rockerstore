@@ -1,5 +1,6 @@
 import './header.js';
 import { createFavoriteButton } from './favorites.js';
+import { createRatingSummary } from './rating.js';
 
 const productList = document.querySelector('#productList');
 const message = document.querySelector('#message');
@@ -196,6 +197,12 @@ function createProductCard(product) {
         'product-price'
     );
 
+    
+    const rating = createRatingSummary(
+        product.rating_average,
+        product.rating_count
+    );
+
     const inStock = product.stock_quantity > 0;
 
     const stock = createElement(
@@ -237,6 +244,7 @@ function createProductCard(product) {
         category,
         name,
         price,
+        rating,
         stockRow,
         button
     );

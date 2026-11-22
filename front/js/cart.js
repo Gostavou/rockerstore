@@ -1,4 +1,4 @@
-import './js/header.js';
+import './header.js';
 
 const cartItems = document.querySelector('#cartItems');
 const cartMessage = document.querySelector('#cartMessage');

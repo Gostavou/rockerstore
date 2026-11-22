@@ -1,4 +1,5 @@
 import './header.js';
+import { bindCepLookup } from './cep.js';
 
 const $ = selector => document.querySelector(selector);
 
@@ -18,6 +19,7 @@ const addressPanel = $('#accountAddressPanel');
 const addressForm = $('#accountAddressForm');
 const addressFormTitle = $('#addressFormTitle');
 const saveAddressButton = $('#saveAccountAddressButton');
+bindCepLookup(addressForm);
 
 let editingAddressId = null;
 let addressBusy = false;

@@ -1,4 +1,5 @@
 import './auth.js';
+import { bindCepLookup } from './cep.js';
 
 const $ = selector => document.querySelector(selector);
 const checkoutMessage = $('#checkoutMessage');
@@ -6,6 +7,7 @@ const addressSelect = $('#addressSelect');
 const addressForm = $('#addressForm');
 const orderForm = $('#orderForm');
 const payButton = $('#payButton');
+bindCepLookup(addressForm);
 
 const SHIPPING_CENTS = 1500;
 
